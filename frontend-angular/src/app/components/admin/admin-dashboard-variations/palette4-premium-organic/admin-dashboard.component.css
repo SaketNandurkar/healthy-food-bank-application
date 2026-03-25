@@ -1,0 +1,510 @@
+/* 🍃 PALETTE 4: PREMIUM ORGANIC */
+/* Purpose: Refined, minimalist organic e-commerce look */
+/* Mood: Trustworthy, eco-luxury */
+
+:root {
+  /* Primary - Deep Forest Green (40% usage) */
+  --primary-forest-green: #2F5233;
+  --primary-hover: #244229;
+  --primary-light: rgba(47, 82, 51, 0.08);
+
+  /* Secondary - Sage (20% usage) */
+  --secondary-sage: #A3B18A;
+  --secondary-hover: #8fa175;
+  --secondary-light: rgba(163, 177, 138, 0.15);
+
+  /* Accent - Warm Gold (10% usage) */
+  --accent-warm-gold: #D4A373;
+  --accent-hover: #c08f5d;
+
+  /* Background - Soft Ivory (25% usage) */
+  --bg-soft-ivory: #F0EFEB;
+
+  /* Text - Dark Olive (5% usage) */
+  --text-dark-olive: #3A3A3A;
+
+  /* Shadows and transitions */
+  --card-shadow: 0 2px 16px rgba(47, 82, 51, 0.06);
+  --card-hover-shadow: 0 12px 32px rgba(47, 82, 51, 0.12);
+  --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Main Container */
+.admin-container {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(135deg, var(--bg-soft-ivory) 0%, #e8e6e1 100%);
+  font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* Sidebar - Primary Color (40%) */
+.sidebar {
+  width: 280px;
+  background: linear-gradient(180deg, var(--primary-forest-green) 0%, var(--primary-hover) 100%);
+  color: var(--bg-soft-ivory);
+  padding: 0;
+  box-shadow: 6px 0 24px rgba(47, 82, 51, 0.15);
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  transition: var(--transition);
+  border-right: 1px solid rgba(163, 177, 138, 0.2);
+}
+
+.sidebar-header {
+  padding: 2.5rem 2rem;
+  border-bottom: 1px solid rgba(212, 163, 115, 0.2);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.sidebar-header h4 {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.4rem;
+  color: white;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  letter-spacing: 0.5px;
+}
+
+.sidebar-header p {
+  margin: 0.75rem 0 0 0;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  color: var(--accent-warm-gold);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.nav-menu {
+  padding: 1.5rem 0;
+}
+
+.nav-item {
+  margin: 0.4rem 1rem;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.nav-link {
+  color: rgba(240, 239, 235, 0.95);
+  padding: 1.1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: var(--transition);
+  border-radius: 14px;
+  font-weight: 500;
+  position: relative;
+  letter-spacing: 0.3px;
+}
+
+.nav-link i {
+  width: 26px;
+  margin-right: 1rem;
+  font-size: 1.15rem;
+}
+
+.nav-link:hover {
+  background: rgba(212, 163, 115, 0.15);
+  color: var(--accent-warm-gold);
+  transform: translateX(6px);
+}
+
+.nav-link.active {
+  background: linear-gradient(135deg, var(--accent-warm-gold) 0%, var(--accent-hover) 100%);
+  color: var(--text-dark-olive);
+  box-shadow: 0 6px 20px rgba(212, 163, 115, 0.35);
+  font-weight: 700;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 2.5rem;
+  transition: var(--transition);
+}
+
+/* Header Bar - Elegant with Gold accent */
+.header-bar {
+  background: white;
+  padding: 2rem 2.5rem;
+  border-radius: 18px;
+  margin-bottom: 2.5rem;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid rgba(163, 177, 138, 0.2);
+  border-top: 3px solid var(--accent-warm-gold);
+}
+
+.header-bar h2 {
+  margin: 0;
+  color: var(--text-dark-olive);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Logout Button - Forest Green */
+.btn-logout {
+  background: linear-gradient(135deg, var(--primary-forest-green) 0%, var(--primary-hover) 100%);
+  color: white;
+  border: none;
+  padding: 0.85rem 2.25rem;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(47, 82, 51, 0.2);
+  letter-spacing: 0.3px;
+}
+
+.btn-logout:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(47, 82, 51, 0.3);
+}
+
+/* Section Content */
+.section-content {
+  animation: luxuryFade 0.6s ease-out;
+}
+
+@keyframes luxuryFade {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cards - Premium minimal design */
+.card {
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 2.5rem;
+  background: white;
+  border: 1px solid rgba(163, 177, 138, 0.15);
+  transition: var(--transition);
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--secondary-sage);
+}
+
+.card-header {
+  background: linear-gradient(135deg, var(--primary-forest-green) 0%, var(--primary-hover) 100%);
+  color: white;
+  padding: 1.5rem 2rem;
+  font-weight: 700;
+  font-size: 1.2rem;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  letter-spacing: 0.3px;
+}
+
+.card-header i {
+  margin-right: 1rem;
+  font-size: 1.4rem;
+}
+
+.card-body {
+  padding: 2rem;
+  background: white;
+  color: var(--text-dark-olive);
+}
+
+/* Alert Messages - Refined */
+.alert {
+  border-radius: 16px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+  border: none;
+  animation: elegantSlide 0.5s ease-out;
+}
+
+@keyframes elegantSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.alert-success {
+  background: var(--primary-light);
+  color: var(--primary-hover);
+  border-left: 5px solid var(--primary-forest-green);
+}
+
+.alert-danger {
+  background: rgba(211, 47, 47, 0.08);
+  color: #c62828;
+  border-left: 5px solid #d32f2f;
+}
+
+/* Buttons - Warm Gold for CTAs (10%) */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-warm-gold) 0%, var(--accent-hover) 100%);
+  color: white;
+  border: none;
+  padding: 0.85rem 2rem;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(212, 163, 115, 0.25);
+  letter-spacing: 0.3px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(212, 163, 115, 0.4);
+  background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent-warm-gold) 100%);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, var(--secondary-sage) 0%, var(--secondary-hover) 100%);
+  color: white;
+  border: none;
+  padding: 0.85rem 2rem;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: var(--transition);
+  box-shadow: 0 4px 16px rgba(163, 177, 138, 0.2);
+  letter-spacing: 0.3px;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(163, 177, 138, 0.35);
+}
+
+/* Form Controls - Sage backgrounds */
+.form-control, .form-select {
+  border: 2px solid var(--secondary-light);
+  border-radius: 12px;
+  padding: 0.9rem 1.25rem;
+  transition: var(--transition);
+  background: var(--bg-soft-ivory);
+  color: var(--text-dark-olive);
+  font-size: 0.95rem;
+  letter-spacing: 0.2px;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent-warm-gold);
+  box-shadow: 0 0 0 0.35rem rgba(212, 163, 115, 0.15);
+  background: white;
+}
+
+.form-label {
+  color: var(--text-dark-olive);
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+}
+
+/* Badges - Elegant gradients */
+.badge.bg-success {
+  background: linear-gradient(135deg, var(--primary-forest-green) 0%, var(--primary-hover) 100%) !important;
+  color: white !important;
+  padding: 0.6rem 1.25rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 0 3px 12px rgba(47, 82, 51, 0.25);
+  letter-spacing: 0.3px;
+}
+
+.badge.bg-danger {
+  background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%) !important;
+  color: white !important;
+  padding: 0.6rem 1.25rem;
+  border-radius: 30px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  box-shadow: 0 3px 12px rgba(211, 47, 47, 0.25);
+  letter-spacing: 0.3px;
+}
+
+/* Table - Minimalist luxury */
+.table {
+  color: var(--text-dark-olive);
+  margin: 0;
+}
+
+.table thead {
+  background: linear-gradient(135deg, var(--secondary-light) 0%, rgba(163, 177, 138, 0.08) 100%);
+  color: var(--text-dark-olive);
+  font-weight: 700;
+}
+
+.table thead th {
+  border: none;
+  padding: 1.25rem;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.table tbody tr {
+  transition: var(--transition);
+  border-bottom: 1px solid rgba(163, 177, 138, 0.15);
+}
+
+.table tbody tr:hover {
+  background: var(--primary-light);
+  transform: scale(1.005);
+}
+
+.table td {
+  padding: 1.25rem;
+  vertical-align: middle;
+  border: none;
+}
+
+/* Action Buttons */
+.btn-sm {
+  padding: 0.6rem 1.1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: var(--transition);
+  letter-spacing: 0.2px;
+}
+
+.text-success {
+  color: var(--primary-forest-green) !important;
+}
+
+.text-danger {
+  color: #d32f2f !important;
+}
+
+/* Edit Form Container */
+.border {
+  border: 2px solid var(--secondary-sage) !important;
+  border-radius: 16px;
+  background: linear-gradient(180deg, white 0%, rgba(240, 239, 235, 0.3) 100%);
+}
+
+.bg-primary {
+  background: linear-gradient(135deg, var(--primary-forest-green) 0%, var(--primary-hover) 100%) !important;
+}
+
+/* Pickup Points Grid - Premium layout */
+.pickup-points-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 2rem;
+  margin-top: 2.5rem;
+}
+
+.pickup-card {
+  background: white;
+  border: 2px solid var(--secondary-light);
+  border-radius: 18px;
+  padding: 2rem;
+  transition: var(--transition);
+  box-shadow: var(--card-shadow);
+  animation: luxuryPop 0.6s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.pickup-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--primary-forest-green) 0%, var(--accent-warm-gold) 50%, var(--secondary-sage) 100%);
+}
+
+@keyframes luxuryPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(20px);
+  }
+  60% {
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pickup-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: var(--card-hover-shadow);
+  border-color: var(--accent-warm-gold);
+}
+
+.pickup-card h5 {
+  color: var(--primary-forest-green);
+  font-weight: 800;
+  margin-bottom: 1.25rem;
+  font-size: 1.3rem;
+  letter-spacing: -0.3px;
+}
+
+.pickup-card p {
+  color: var(--text-dark-olive);
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.pickup-card .icon-text {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #5a5a5a;
+}
+
+.pickup-card .icon-text i {
+  color: var(--accent-warm-gold);
+  width: 24px;
+  font-size: 1.15rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 80px;
+  }
+
+  .main-content {
+    margin-left: 80px;
+  }
+
+  .sidebar-header p,
+  .nav-link span {
+    display: none;
+  }
+
+  .nav-link {
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .pickup-points-grid {
+    grid-template-columns: 1fr;
+  }
+}

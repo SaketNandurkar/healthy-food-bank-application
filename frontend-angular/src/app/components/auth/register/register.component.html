@@ -1,0 +1,272 @@
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="row w-100">
+    <div class="col-md-8 col-lg-6 col-xl-5 mx-auto">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-success text-white text-center py-3">
+          <h3 class="mb-0">
+            <i class="fas fa-leaf me-2"></i>
+            Healthy Food Bank - Register
+          </h3>
+        </div>
+        
+        <div class="card-body p-4">
+          <!-- Success Message -->
+          <div *ngIf="success" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            {{ success }}
+            <button type="button" class="btn-close" aria-label="Close" (click)="success = ''"></button>
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ error }}
+            <button type="button" class="btn-close" aria-label="Close" (click)="error = ''"></button>
+          </div>
+
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="row">
+              <!-- First Name -->
+              <div class="col-md-6 mb-3">
+                <label for="firstName" class="form-label">First Name *</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    id="firstName"
+                    formControlName="firstName"
+                    [class.is-invalid]="submitted && f['firstName'].errors"
+                    placeholder="Enter first name">
+                </div>
+                <div *ngIf="submitted && f['firstName'].errors" class="invalid-feedback">
+                  <div *ngIf="f['firstName'].errors['required']">First name is required</div>
+                  <div *ngIf="f['firstName'].errors['minlength']">First name must be at least 2 characters</div>
+                  <div *ngIf="f['firstName'].errors['maxlength']">First name must not exceed 50 characters</div>
+                </div>
+              </div>
+
+              <!-- Last Name -->
+              <div class="col-md-6 mb-3">
+                <label for="lastName" class="form-label">Last Name *</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-user"></i></span>
+                  <input 
+                    type="text" 
+                    class="form-control"
+                    id="lastName"
+                    formControlName="lastName"
+                    [class.is-invalid]="submitted && f['lastName'].errors"
+                    placeholder="Enter last name">
+                </div>
+                <div *ngIf="submitted && f['lastName'].errors" class="invalid-feedback">
+                  <div *ngIf="f['lastName'].errors['required']">Last name is required</div>
+                  <div *ngIf="f['lastName'].errors['minlength']">Last name must be at least 2 characters</div>
+                  <div *ngIf="f['lastName'].errors['maxlength']">Last name must not exceed 50 characters</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address (Optional)</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                <input 
+                  type="email" 
+                  class="form-control"
+                  id="email"
+                  formControlName="email"
+                  [class.is-invalid]="submitted && f['email'].errors"
+                  placeholder="Enter email address">
+              </div>
+              <div *ngIf="submitted && f['email'].errors" class="invalid-feedback">
+                <div *ngIf="f['email'].errors['email']">Please enter a valid email address</div>
+              </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div class="mb-3">
+              <label for="phoneNumber" class="form-label">Phone Number *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                <input 
+                  type="tel" 
+                  class="form-control"
+                  id="phoneNumber"
+                  formControlName="phoneNumber"
+                  [class.is-invalid]="submitted && f['phoneNumber'].errors"
+                  placeholder="Enter 10-digit phone number">
+              </div>
+              <div *ngIf="submitted && f['phoneNumber'].errors" class="invalid-feedback">
+                <div *ngIf="f['phoneNumber'].errors['required']">Phone number is required</div>
+                <div *ngIf="f['phoneNumber'].errors['pattern']">Please enter a valid 10-digit phone number</div>
+              </div>
+            </div>
+
+            <!-- Role -->
+            <div class="mb-3">
+              <label for="role" class="form-label">Role *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                <select 
+                  class="form-select"
+                  id="role"
+                  formControlName="role"
+                  [class.is-invalid]="submitted && f['role'].errors">
+                  <option value="">Select your role</option>
+                  <option *ngFor="let role of userRoles" [value]="role">
+                    {{ role === 'VENDOR' ? 'Vendor (Seller)' : role === 'CUSTOMER' ? 'Customer (Buyer)' : role }}
+                  </option>
+                </select>
+              </div>
+              <div *ngIf="submitted && f['role'].errors" class="invalid-feedback">
+                <div *ngIf="f['role'].errors['required']">Please select a role</div>
+              </div>
+            </div>
+
+            <!-- Vendor Code (conditional) -->
+            <div *ngIf="showVendorCode" class="mb-3">
+              <label for="vendorCode" class="form-label">Vendor Code *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  id="vendorCode"
+                  formControlName="vendorCode"
+                  [class.is-invalid]="submitted && f['vendorCode'].errors"
+                  (input)="onVendorCodeChange()"
+                  placeholder="Enter vendor registration code">
+                <div *ngIf="vendorCodeValidating" class="input-group-text">
+                  <i class="fas fa-spinner fa-spin"></i>
+                </div>
+              </div>
+              <div *ngIf="submitted && f['vendorCode'].errors" class="invalid-feedback">
+                <div *ngIf="f['vendorCode'].errors['required']">Vendor code is required for vendor registration</div>
+                <div *ngIf="f['vendorCode'].errors['minlength']">Vendor code must be at least 5 characters</div>
+                <div *ngIf="f['vendorCode'].errors['invalidVendorCode']">Invalid vendor code. Please check with admin.</div>
+              </div>
+              <small class="form-text text-muted">Contact admin to get your vendor registration code</small>
+            </div>
+
+            <!-- Pickup Point (conditional for customers) -->
+            <div *ngIf="showPickupPoint" class="mb-3">
+              <label for="pickupPointId" class="form-label">Pickup Point *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                <select
+                  class="form-select"
+                  id="pickupPointId"
+                  formControlName="pickupPointId"
+                  [class.is-invalid]="submitted && f['pickupPointId'].errors">
+                  <option value="">Select your preferred pickup point</option>
+                  <option *ngFor="let point of pickupPoints" [value]="point.id">
+                    {{ point.name }} - {{ point.address }}
+                  </option>
+                </select>
+              </div>
+              <div *ngIf="submitted && f['pickupPointId'].errors" class="invalid-feedback">
+                <div *ngIf="f['pickupPointId'].errors['required']">Please select a pickup point</div>
+              </div>
+              <small class="form-text text-muted">Choose where you'd like to collect your orders</small>
+            </div>
+
+            <!-- Username -->
+            <div class="mb-3">
+              <label for="userName" class="form-label">Username *</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-at"></i></span>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  id="userName"
+                  formControlName="userName"
+                  [class.is-invalid]="submitted && f['userName'].errors"
+                  placeholder="Choose a username">
+              </div>
+              <div *ngIf="submitted && f['userName'].errors" class="invalid-feedback">
+                <div *ngIf="f['userName'].errors['required']">Username is required</div>
+                <div *ngIf="f['userName'].errors['minlength']">Username must be at least 3 characters</div>
+                <div *ngIf="f['userName'].errors['maxlength']">Username must not exceed 20 characters</div>
+              </div>
+            </div>
+
+            <div class="row">
+              <!-- Password -->
+              <div class="col-md-6 mb-3">
+                <label for="password" class="form-label">Password *</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                  <input 
+                    type="password" 
+                    class="form-control"
+                    id="password"
+                    formControlName="password"
+                    [class.is-invalid]="submitted && f['password'].errors"
+                    placeholder="Enter password">
+                </div>
+                <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
+                  <div *ngIf="f['password'].errors['required']">Password is required</div>
+                  <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
+                  <div *ngIf="f['password'].errors['maxlength']">Password must not exceed 100 characters</div>
+                </div>
+              </div>
+
+              <!-- Confirm Password -->
+              <div class="col-md-6 mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password *</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                  <input 
+                    type="password" 
+                    class="form-control"
+                    id="confirmPassword"
+                    formControlName="confirmPassword"
+                    [class.is-invalid]="submitted && (f['confirmPassword'].errors || registerForm.errors?.['passwordMismatch'])"
+                    placeholder="Confirm password">
+                </div>
+                <div *ngIf="submitted && f['confirmPassword'].errors" class="invalid-feedback">
+                  <div *ngIf="f['confirmPassword'].errors['required']">Please confirm your password</div>
+                </div>
+                <div *ngIf="submitted && registerForm.errors?.['passwordMismatch']" class="invalid-feedback d-block">
+                  Passwords do not match
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-grid gap-2">
+              <button 
+                type="submit" 
+                class="btn btn-success btn-lg"
+                [disabled]="loading">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i *ngIf="!loading" class="fas fa-user-plus me-2"></i>
+                {{ loading ? 'Creating Account...' : 'Create Account' }}
+              </button>
+              
+              <button 
+                type="button" 
+                class="btn btn-outline-secondary"
+                (click)="onReset()"
+                [disabled]="loading">
+                <i class="fas fa-undo me-2"></i>
+                Reset Form
+              </button>
+            </div>
+          </form>
+        </div>
+        
+        <div class="card-footer text-center py-3 bg-light">
+          <p class="mb-0">
+            Already have an account? 
+            <button type="button" class="btn btn-link p-0 fw-bold" (click)="navigateToLogin()">
+              Sign in here
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

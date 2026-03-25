@@ -1,0 +1,152 @@
+<!-- Customer Pickup Points with Sidebar Layout -->
+<div class="customer-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h4>
+        <i class="fas fa-shopping-cart me-2"></i>
+        Customer Portal
+      </h4>
+      <p *ngIf="customerId">Customer ID: {{ customerId }}</p>
+    </div>
+
+    <div class="sidebar-menu">
+      <div class="menu-item" (click)="goBack()">
+        <i class="fas fa-shopping-bag"></i>
+        <span>Browse Products</span>
+      </div>
+      <div class="menu-item active">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>My Pickup Points</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="goBack()">
+        <i class="fas fa-arrow-left me-2"></i>
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="page-header">
+      <div>
+        <h2>My Pickup Points</h2>
+        <p class="text-muted">Manage your delivery pickup locations</p>
+      </div>
+      <button class="btn btn-primary-custom" (click)="openAddModal()">
+        <i class="fas fa-plus me-2"></i>Add Pickup Point
+      </button>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3">
+      <i class="fas fa-check-circle me-2"></i>{{ successMessage }}
+      <button type="button" class="btn-close" (click)="clearMessages()"></button>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3">
+      <i class="fas fa-exclamation-triangle me-2"></i>{{ errorMessage }}
+      <button type="button" class="btn-close" (click)="clearMessages()"></button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="loading" class="text-center my-5">
+      <div class="spinner-border text-primary-custom" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <!-- Pickup Points List -->
+    <div *ngIf="!loading && pickupPoints.length > 0" class="row">
+      <div class="col-md-6 col-lg-4 mb-4" *ngFor="let point of pickupPoints">
+        <div class="pickup-point-card" [class.active-card]="point.active">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h5 class="card-title mb-0">
+                {{ point.name || 'Pickup Point #' + point.pickupPointId }}
+              </h5>
+              <span *ngIf="point.active" class="badge bg-success">Active</span>
+            </div>
+
+            <p class="card-text text-muted">
+              <i class="fas fa-map-marker-alt me-2"></i>
+              {{ point.address || 'Address not available' }}
+            </p>
+
+            <div class="card-actions mt-3">
+              <button *ngIf="!point.active"
+                      class="btn btn-sm btn-primary-custom me-2"
+                      (click)="setActive(point.pickupPointId)">
+                <i class="fas fa-check-circle me-1"></i> Set as Active
+              </button>
+
+              <button class="btn btn-sm btn-outline-danger"
+                      (click)="deletePickupPoint(point.pickupPointId)"
+                      [disabled]="pickupPoints.length === 1">
+                <i class="fas fa-trash me-1"></i> Delete
+              </button>
+            </div>
+
+            <small class="text-muted d-block mt-2">
+              Added on {{ point.createdDate | date:'short' }}
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && pickupPoints.length === 0" class="empty-state">
+      <i class="fas fa-map-marker-alt fa-4x text-muted mb-3"></i>
+      <h4>No Pickup Points</h4>
+      <p class="text-muted">Add a pickup point to start ordering products</p>
+      <button class="btn btn-primary-custom" (click)="openAddModal()">
+        <i class="fas fa-plus me-2"></i>Add Your First Pickup Point
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Pickup Point Modal -->
+<div class="modal fade" [class.show]="showAddModal" [style.display]="showAddModal ? 'block' : 'none'"
+     tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Add Pickup Point</h5>
+        <button type="button" class="btn-close" (click)="closeAddModal()"></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="pickupPointSelect" class="form-label">Select Pickup Point</label>
+          <select class="form-select" id="pickupPointSelect" [(ngModel)]="selectedPickupPointId">
+            <option [ngValue]="null">Choose a pickup point...</option>
+            <option *ngFor="let pp of getAvailablePickupPoints()" [ngValue]="pp.id">
+              {{ pp.name }} - {{ pp.address }}
+            </option>
+          </select>
+        </div>
+
+        <div *ngIf="getAvailablePickupPoints().length === 0" class="alert alert-info mt-3">
+          <i class="fas fa-info-circle me-2"></i> You have already added all available pickup points.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeAddModal()">Cancel</button>
+        <button type="button" class="btn btn-primary-custom"
+                (click)="addPickupPoint()"
+                [disabled]="!selectedPickupPointId || loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          Add Pickup Point
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div class="modal-backdrop fade" [class.show]="showAddModal"
+     *ngIf="showAddModal" (click)="closeAddModal()"></div>

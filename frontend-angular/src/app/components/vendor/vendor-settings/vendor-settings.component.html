@@ -1,0 +1,180 @@
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand" (click)="backToDashboard()" style="cursor: pointer;">
+      <i class="fas fa-arrow-left me-2"></i>
+      <i class="fas fa-leaf me-2"></i>
+      Healthy Food Bank - Vendor Settings
+    </a>
+  </div>
+</nav>
+
+<div class="container-fluid py-4">
+  <!-- Success/Error Messages -->
+  <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <div class="row">
+    <!-- Password Change Section -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">
+            <i class="fas fa-lock me-2"></i>Change Password
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()">
+            <div class="mb-3">
+              <label for="currentPassword" class="form-label">Current Password *</label>
+              <input 
+                type="password" 
+                class="form-control"
+                id="currentPassword"
+                formControlName="currentPassword"
+                [class.is-invalid]="pf['currentPassword'].invalid && pf['currentPassword'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="pf['currentPassword'].errors?.['required']">Current password is required</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="newPassword" class="form-label">New Password *</label>
+              <input 
+                type="password" 
+                class="form-control"
+                id="newPassword"
+                formControlName="newPassword"
+                [class.is-invalid]="pf['newPassword'].invalid && pf['newPassword'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="pf['newPassword'].errors?.['required']">New password is required</div>
+                <div *ngIf="pf['newPassword'].errors?.['minlength']">Password must be at least 6 characters</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="confirmPassword" class="form-label">Confirm New Password *</label>
+              <input 
+                type="password" 
+                class="form-control"
+                id="confirmPassword"
+                formControlName="confirmPassword"
+                [class.is-invalid]="pf['confirmPassword'].invalid && pf['confirmPassword'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="pf['confirmPassword'].errors?.['required']">Please confirm your new password</div>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              class="btn btn-primary"
+              [disabled]="passwordForm.invalid || loading">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!loading" class="fas fa-key me-2"></i>
+              {{ loading ? 'Updating...' : 'Change Password' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Settings Section -->
+    <div class="col-md-6 mb-4">
+      <div class="card shadow">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">
+            <i class="fas fa-bell me-2"></i>Notification Settings
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="notificationForm" (ngSubmit)="onUpdateNotifications()">
+            <div class="form-check mb-3">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="emailNotifications"
+                formControlName="emailNotifications">
+              <label class="form-check-label" for="emailNotifications">
+                <i class="fas fa-envelope me-2"></i>Email Notifications
+              </label>
+              <small class="d-block text-muted">Receive notifications via email</small>
+            </div>
+
+            <div class="form-check mb-3">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="smsNotifications"
+                formControlName="smsNotifications">
+              <label class="form-check-label" for="smsNotifications">
+                <i class="fas fa-sms me-2"></i>SMS Notifications
+              </label>
+              <small class="d-block text-muted">Receive notifications via SMS</small>
+            </div>
+
+            <div class="form-check mb-3">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="orderNotifications"
+                formControlName="orderNotifications">
+              <label class="form-check-label" for="orderNotifications">
+                <i class="fas fa-shopping-cart me-2"></i>Order Notifications
+              </label>
+              <small class="d-block text-muted">Get notified about new orders</small>
+            </div>
+
+            <div class="form-check mb-3">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="lowStockAlerts"
+                formControlName="lowStockAlerts">
+              <label class="form-check-label" for="lowStockAlerts">
+                <i class="fas fa-exclamation-triangle me-2"></i>Low Stock Alerts
+              </label>
+              <small class="d-block text-muted">Get alerts when inventory is low</small>
+            </div>
+
+            <div class="form-check mb-3">
+              <input 
+                class="form-check-input" 
+                type="checkbox" 
+                id="marketingEmails"
+                formControlName="marketingEmails">
+              <label class="form-check-label" for="marketingEmails">
+                <i class="fas fa-bullhorn me-2"></i>Marketing Emails
+              </label>
+              <small class="d-block text-muted">Receive promotional emails and offers</small>
+            </div>
+
+            <button 
+              type="submit" 
+              class="btn btn-success"
+              [disabled]="loading">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!loading" class="fas fa-save me-2"></i>
+              {{ loading ? 'Updating...' : 'Update Preferences' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Dashboard Button -->
+  <div class="row">
+    <div class="col-12 text-center">
+      <button type="button" class="btn btn-secondary" (click)="backToDashboard()">
+        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+      </button>
+    </div>
+  </div>
+</div>

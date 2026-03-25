@@ -1,0 +1,126 @@
+<!-- Header -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
+  <div class="container-fluid">
+    <a class="navbar-brand" (click)="backToDashboard()" style="cursor: pointer;">
+      <i class="fas fa-arrow-left me-2"></i>
+      <i class="fas fa-leaf me-2"></i>
+      Healthy Food Bank - Vendor Profile
+    </a>
+  </div>
+</nav>
+
+<div class="container-fluid py-4">
+  <!-- Success/Error Messages -->
+  <div *ngIf="success" class="alert alert-success alert-dismissible fade show">
+    <i class="fas fa-check-circle me-2"></i>{{ success }}
+    <button type="button" class="btn-close" (click)="success = ''"></button>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger alert-dismissible fade show">
+    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+    <button type="button" class="btn-close" (click)="error = ''"></button>
+  </div>
+
+  <!-- Profile Form -->
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow">
+        <div class="card-header bg-white">
+          <h5 class="mb-0">
+            <i class="fas fa-user me-2"></i>Vendor Profile Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="firstName" class="form-label">First Name *</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  id="firstName"
+                  formControlName="firstName"
+                  [class.is-invalid]="f['firstName'].invalid && f['firstName'].touched">
+                <div class="invalid-feedback">
+                  <div *ngIf="f['firstName'].errors?.['required']">First name is required</div>
+                  <div *ngIf="f['firstName'].errors?.['minlength']">First name must be at least 2 characters</div>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="lastName" class="form-label">Last Name *</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  id="lastName"
+                  formControlName="lastName"
+                  [class.is-invalid]="f['lastName'].invalid && f['lastName'].touched">
+                <div class="invalid-feedback">
+                  <div *ngIf="f['lastName'].errors?.['required']">Last name is required</div>
+                  <div *ngIf="f['lastName'].errors?.['minlength']">Last name must be at least 2 characters</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="email" class="form-label">Email Address *</label>
+                <input 
+                  type="email" 
+                  class="form-control"
+                  id="email"
+                  formControlName="email"
+                  [class.is-invalid]="f['email'].invalid && f['email'].touched">
+                <div class="invalid-feedback">
+                  <div *ngIf="f['email'].errors?.['required']">Email is required</div>
+                  <div *ngIf="f['email'].errors?.['email']">Please enter a valid email address</div>
+                </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="phoneNumber" class="form-label">Phone Number</label>
+                <input 
+                  type="tel" 
+                  class="form-control"
+                  id="phoneNumber"
+                  formControlName="phoneNumber"
+                  placeholder="1234567890"
+                  [class.is-invalid]="f['phoneNumber'].invalid && f['phoneNumber'].touched">
+                <div class="invalid-feedback">
+                  <div *ngIf="f['phoneNumber'].errors?.['pattern']">Please enter a valid 10-digit phone number</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="vendorId" class="form-label">Vendor ID</label>
+                <input 
+                  type="text" 
+                  class="form-control"
+                  id="vendorId"
+                  formControlName="vendorId"
+                  readonly>
+                <small class="form-text text-muted">Vendor ID cannot be changed</small>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+              <button type="button" class="btn btn-secondary" (click)="backToDashboard()">
+                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+              </button>
+              <button 
+                type="submit" 
+                class="btn btn-success"
+                [disabled]="profileForm.invalid || loading">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!loading" class="fas fa-save me-2"></i>
+                {{ loading ? 'Updating...' : 'Update Profile' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

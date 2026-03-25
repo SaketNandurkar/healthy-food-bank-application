@@ -1,0 +1,165 @@
+<div class="container-fluid vh-100 d-flex align-items-center justify-content-center bg-light">
+  <div class="row w-100">
+    <div class="col-md-6 col-lg-5 col-xl-4 mx-auto">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-success text-white text-center py-4">
+          <h3 class="mb-0">
+            <i class="fas fa-leaf me-2"></i>
+            Healthy Food Bank
+          </h3>
+          <p class="mb-0 mt-2 opacity-75">Welcome back! Please sign in to your account</p>
+        </div>
+
+        <div class="card-body p-4">
+          <!-- Session Expired Message -->
+          <div *ngIf="sessionExpiredMessage" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="fas fa-clock me-2"></i>
+            {{ sessionExpiredMessage }}
+            <button type="button" class="btn-close" aria-label="Close" (click)="sessionExpiredMessage = ''"></button>
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="error" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ error }}
+            <button type="button" class="btn-close" aria-label="Close" (click)="error = ''"></button>
+          </div>
+
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <!-- Username -->
+            <div class="mb-3">
+              <label for="userName" class="form-label">Username</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-user"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="userName"
+                  formControlName="userName"
+                  [class.is-invalid]="submitted && f['userName'].errors"
+                  placeholder="Enter your username"
+                  autocomplete="username">
+              </div>
+              <div *ngIf="submitted && f['userName'].errors" class="invalid-feedback">
+                <div *ngIf="f['userName'].errors['required']">Username is required</div>
+                <div *ngIf="f['userName'].errors['minlength']">Username must be at least 3 characters</div>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+              <label for="password" class="form-label">Password</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="fas fa-lock"></i>
+                </span>
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  class="form-control"
+                  id="password"
+                  formControlName="password"
+                  [class.is-invalid]="submitted && f['password'].errors"
+                  placeholder="Enter your password"
+                  autocomplete="current-password">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  (click)="togglePasswordVisibility()"
+                  tabindex="-1">
+                  <i [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                </button>
+              </div>
+              <div *ngIf="submitted && f['password'].errors" class="invalid-feedback">
+                <div *ngIf="f['password'].errors['required']">Password is required</div>
+                <div *ngIf="f['password'].errors['minlength']">Password must be at least 6 characters</div>
+              </div>
+            </div>
+
+            <!-- Login Button -->
+            <div class="d-grid gap-2">
+              <button
+                type="submit"
+                class="btn btn-success btn-lg"
+                [disabled]="loading">
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i *ngIf="!loading" class="fas fa-sign-in-alt me-2"></i>
+                {{ loading ? 'Signing In...' : 'Sign In' }}
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                (click)="onReset()"
+                [disabled]="loading">
+                <i class="fas fa-undo me-2"></i>
+                Reset
+              </button>
+            </div>
+          </form>
+
+          <!-- Additional Actions -->
+          <div class="row mt-4">
+            <div class="col-12 text-center">
+              <a href="#" class="text-decoration-none text-muted small">
+                <i class="fas fa-question-circle me-1"></i>
+                Forgot Password?
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-footer text-center py-3 bg-light">
+          <p class="mb-0">
+            Don't have an account?
+            <button type="button" class="btn btn-link p-0 fw-bold" (click)="navigateToRegister()">
+              Register here
+            </button>
+          </p>
+
+          <!-- Role Information -->
+          <div class="mt-2">
+            <small class="text-muted">
+              <strong>Demo Accounts:</strong><br>
+              <span class="badge bg-info me-2">Vendor: vendor/password</span>
+              <span class="badge bg-warning">Customer: customer/password</span>
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Role Benefits -->
+      <div class="row mt-4">
+        <div class="col-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+              <i class="fas fa-store text-primary fs-4 mb-2"></i>
+              <h6 class="card-title">Vendor Benefits</h6>
+              <ul class="list-unstyled small text-muted">
+                <li>• Manage your products</li>
+                <li>• Track inventory</li>
+                <li>• View orders</li>
+                <li>• Analytics dashboard</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+              <i class="fas fa-shopping-cart text-success fs-4 mb-2"></i>
+              <h6 class="card-title">Customer Benefits</h6>
+              <ul class="list-unstyled small text-muted">
+                <li>• Browse fresh products</li>
+                <li>• Easy cart management</li>
+                <li>• Order tracking</li>
+                <li>• Secure checkout</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,139 @@
+# ============================================================
+# Healthy Food Bank Application - .gitignore
+# Monorepo: Spring Boot Microservices + Angular + Flutter
+# ============================================================
+
+# ────────────────────────────────────────────────────────────
+# JAVA / SPRING BOOT (user-service, product-service, order-service)
+# ────────────────────────────────────────────────────────────
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven wrapper (keep mvnw and mvnw.cmd, ignore downloaded jars)
+.mvn/wrapper/maven-wrapper.jar
+
+# Logs
+*.log
+**/hs_err_pid*.log
+**/replay_pid*.log
+
+# JVM crash dumps
+hs_err_pid*
+replay_pid*
+
+# ────────────────────────────────────────────────────────────
+# ANGULAR (frontend-angular)
+# ────────────────────────────────────────────────────────────
+**/node_modules/
+frontend-angular/dist/
+frontend-angular/.angular/
+frontend-angular/.cache/
+
+# ────────────────────────────────────────────────────────────
+# FLUTTER (healthy_food_bank_flutter)
+# ────────────────────────────────────────────────────────────
+healthy_food_bank_flutter/build/
+healthy_food_bank_flutter/.dart_tool/
+healthy_food_bank_flutter/.flutter-plugins
+healthy_food_bank_flutter/.flutter-plugins-dependencies
+healthy_food_bank_flutter/.packages
+healthy_food_bank_flutter/.pub-cache/
+healthy_food_bank_flutter/.pub/
+
+# Flutter Android
+healthy_food_bank_flutter/android/local.properties
+healthy_food_bank_flutter/android/.gradle/
+healthy_food_bank_flutter/android/app/build/
+healthy_food_bank_flutter/android/build/
+healthy_food_bank_flutter/android/captures/
+healthy_food_bank_flutter/android/*.iml
+
+# Flutter iOS
+healthy_food_bank_flutter/ios/Pods/
+healthy_food_bank_flutter/ios/.symlinks/
+healthy_food_bank_flutter/ios/Flutter/Flutter.framework
+healthy_food_bank_flutter/ios/Flutter/Flutter.podspec
+healthy_food_bank_flutter/ios/Flutter/Generated.xcconfig
+healthy_food_bank_flutter/ios/Flutter/app.flx
+healthy_food_bank_flutter/ios/Flutter/engine/
+healthy_food_bank_flutter/ios/ServiceDefinitions.json
+healthy_food_bank_flutter/ios/Runner/GeneratedPluginRegistrant.*
+
+# Flutter Web
+healthy_food_bank_flutter/web/flutter_service_worker.js
+
+# Flutter generated
+healthy_food_bank_flutter/lib/generated_plugin_registrant.dart
+
+# ────────────────────────────────────────────────────────────
+# REACT / VITE DESIGN REFERENCE (healthy-food-bank-flutter)
+# ────────────────────────────────────────────────────────────
+healthy-food-bank-flutter/node_modules/
+healthy-food-bank-flutter/dist/
+
+# ────────────────────────────────────────────────────────────
+# IDE & EDITORS
+# ────────────────────────────────────────────────────────────
+# IntelliJ IDEA / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ────────────────────────────────────────────────────────────
+# OS GENERATED
+# ────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+NUL
+nul
+
+# ────────────────────────────────────────────────────────────
+# CLAUDE CODE / AI TOOLS
+# ────────────────────────────────────────────────────────────
+.claude/
+
+# ────────────────────────────────────────────────────────────
+# TEMPORARY & SCRATCH FILES
+# ────────────────────────────────────────────────────────────
+*.py
+temp_*.json
+*.tmp
+*.swp
+*.swo
+*~
+
+# ────────────────────────────────────────────────────────────
+# ENVIRONMENT & SECRETS (safety net)
+# ────────────────────────────────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+*.keystore
+*.jks

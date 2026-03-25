@@ -1,0 +1,353 @@
+================================================================================
+                    HEALTHY FOOD BANK APPLICATION
+                         APPLICATION DETAILS
+================================================================================
+
+OVERVIEW
+--------
+Healthy Food Bank is a full-stack web application that connects customers with
+local vendors to purchase fresh, healthy products. The system facilitates
+product management, order processing, and real-time inventory tracking.
+
+TECHNOLOGY STACK
+----------------
+Backend:
+  - Java Spring Boot (Microservices Architecture)
+  - MySQL Database
+  - WebSocket for real-time updates
+  - RESTful APIs
+
+Frontend:
+  - Angular 18
+  - TypeScript
+  - Bootstrap 5
+  - RxJS for reactive programming
+  - Font Awesome icons
+
+Microservices:
+  1. User Service - User authentication and management
+  2. Product Service - Product catalog and inventory
+  3. Order Service - Order processing and tracking
+
+FEATURES
+--------
+
+1. USER MANAGEMENT
+   - Customer registration and login
+   - Vendor registration and login
+   - Role-based access control (Customer/Vendor)
+   - Secure authentication with JWT tokens
+
+2. VENDOR DASHBOARD
+   - Product Management
+     * Add new products with details (name, description, price, category)
+     * Edit existing products
+     * Delete products
+     * Product categorization (Vegetables, Fruits, Dairy, Grains, etc.)
+     * Stock quantity tracking
+     * Image URL support
+     * Unit-based pricing (kg, g, litre, ml, piece, etc.)
+     * DELIVERY SCHEDULE FEATURE (NEW)
+       - Vendors can specify delivery days (Saturday or Sunday)
+       - Optional field - not required
+       - Helps customers plan their purchases
+
+   - Order Management
+     * View active orders (Pending, Processing)
+     * View order history (Delivered, Cancelled)
+     * Update order status
+     * Real-time order notifications
+
+   - Analytics
+     * Total products count
+     * Total inventory value
+     * Low stock alerts
+     * Category distribution
+
+   - Real-time Updates
+     * Auto-refresh functionality (30-second intervals)
+     * Manual refresh option
+     * WebSocket integration for live updates
+
+3. CUSTOMER DASHBOARD
+   - Product Browsing
+     * View all available products
+     * Search products by name, description, or vendor
+     * Filter by category
+     * Sort by name, price, or vendor
+     * DELIVERY SCHEDULE DISPLAY (NEW)
+       - Shows delivery day badge (Saturday/Sunday)
+       - Displays next delivery date calculation
+       - Helps customers know when products will be delivered
+
+   - Shopping Cart
+     * Add products to cart
+     * Update quantities
+     * Remove items
+     * Real-time cart total calculation
+     * Persistent cart across sessions
+
+   - Order Placement
+     * Checkout process with delivery address
+     * Contact number validation
+     * Order confirmation
+     * Multiple orders (one per vendor)
+
+   - Product Information
+     * Stock availability indicators
+     * Unit-based pricing display
+     * Vendor information
+     * Category badges
+     * Out-of-stock overlays
+
+4. DELIVERY SCHEDULE FEATURE
+   -------------------------
+   This feature allows vendors to specify when products will be delivered,
+   helping customers plan their purchases accordingly.
+
+   Vendor Side:
+   - Add delivery schedule when creating/editing products
+   - Choose from Saturday or Sunday delivery days
+   - Optional field - can be left blank for no specific schedule
+   - Located in product form after stock quantity field
+
+   Customer Side:
+   - Delivery schedule badge displayed on product cards
+   - Shows delivery day (e.g., "Saturday Delivery" or "Sunday Delivery")
+   - Displays calculated next delivery date
+   - Uses calendar icon for visual clarity
+   - Only shown when product has a delivery schedule
+
+   Technical Implementation:
+   - Backend: deliverySchedule field added to Product entity (String)
+   - Frontend Model: deliverySchedule added to Product interface
+   - Helper method: getNextDeliveryDate(schedule: string): Date
+     * Calculates next Saturday (day 6) or Sunday (day 0)
+     * Returns Date object for next occurrence
+   - Display helper: getDeliveryScheduleDisplayText(schedule: string): string
+     * Formats schedule text for display (e.g., "SATURDAY" -> "Saturday")
+
+PRODUCT CATEGORIES
+------------------
+- VEGETABLES
+- FRUITS
+- DAIRY
+- GRAINS
+- PROTEINS
+- BEVERAGES
+- ORGANIC
+- OTHERS
+
+SUPPORTED UNITS
+---------------
+- Kilogram (kg)
+- Gram (g)
+- Litre (L)
+- Millilitre (ml)
+- Piece
+- Dozen
+- Pack
+- Unit
+
+ORDER STATUS FLOW
+-----------------
+1. PENDING - Order placed by customer
+2. PROCESSING - Vendor is preparing the order
+3. DELIVERED - Order successfully delivered to customer
+4. CANCELLED - Order cancelled by vendor or customer
+
+REAL-TIME FEATURES
+------------------
+- Product inventory updates via WebSocket
+- Order notifications to vendors
+- Auto-refresh with countdown timer
+- Live stock quantity synchronization
+
+USER ROLES
+----------
+1. CUSTOMER
+   - Browse products
+   - Manage shopping cart
+   - Place orders
+   - Track order status
+
+2. VENDOR
+   - Manage product inventory
+   - Process customer orders
+   - Update order status
+   - View analytics and reports
+   - Set delivery schedules for products
+
+DATABASE SCHEMA
+---------------
+Key Entities:
+- User (id, firstName, lastName, email, password, role, vendorId, customerId)
+- Product (id, name, description, price, category, stockQuantity, vendorId,
+           imageUrl, unitQuantity, productUnit, deliverySchedule)
+- Order (id, orderName, orderQuantity, orderPrice, orderStatus, productId,
+         vendorId, customerId, orderPlacedDate, orderDeliveredDate)
+
+API ENDPOINTS
+-------------
+User Service:
+- POST /api/users/register - User registration
+- POST /api/users/login - User authentication
+
+Product Service:
+- GET /api/products - Get all products
+- GET /api/products/vendor/{vendorId} - Get products by vendor
+- POST /api/products - Create new product
+- PUT /api/products/{id} - Update product
+- DELETE /api/products/{id} - Delete product
+
+Order Service:
+- POST /api/orders - Create new order
+- GET /api/orders/vendor/{vendorId}/active - Get active orders for vendor
+- GET /api/orders/vendor/{vendorId}/history - Get order history for vendor
+- PUT /api/orders/{id}/status - Update order status
+
+VALIDATION RULES
+----------------
+Product Form:
+- Name: Required, 2-100 characters
+- Description: Required, 10-500 characters
+- Price: Required, minimum 0.01
+- Unit Quantity: Required, minimum 0.01
+- Product Unit: Required
+- Category: Required
+- Stock Quantity: Required, minimum 0
+- Image URL: Optional, must be valid URL format
+- Delivery Schedule: Optional, either "SATURDAY" or "SUNDAY"
+
+Order/Checkout Form:
+- Delivery Address: Required, minimum 10 characters
+- Contact Number: Required, must be 10 digits
+
+SECURITY FEATURES
+-----------------
+- Password encryption
+- JWT-based authentication
+- Role-based authorization
+- Protected routes
+- Input validation
+- XSS prevention
+
+UI/UX FEATURES
+--------------
+- Responsive design (mobile, tablet, desktop)
+- Bootstrap 5 styling
+- Font Awesome icons
+- Loading spinners
+- Success/Error message alerts
+- Confirmation dialogs for destructive actions
+- Card-based layouts
+- Badge indicators
+- Modal forms
+- Sidebar navigation for vendors
+- Shopping cart sidebar for customers
+- Stock status indicators
+- Out-of-stock overlays
+- Delivery schedule badges
+
+RECENT UPDATES
+--------------
+Date: 2025-10-20
+Feature: Delivery Schedule for Products
+
+Changes Made:
+1. Added deliverySchedule field to Product entity (Backend)
+2. Updated Product model interfaces (Frontend)
+3. Added delivery schedule dropdown to vendor product form
+   - File: vendor-dashboard.component.html
+   - Location: After stock quantity field
+   - Options: Saturday, Sunday, or No specific schedule
+
+4. Updated vendor TypeScript to handle delivery schedule
+   - File: vendor-dashboard.component.ts
+   - Changes:
+     * Added deliverySchedule to form initialization
+     * Added deliverySchedule to edit mode patch
+     * Added deliverySchedule to create/update requests
+     * Added helper methods for date calculation and display
+
+5. Added delivery schedule display to customer product listing
+   - File: customer-dashboard.component.html
+   - Shows delivery day badge with truck icon
+   - Displays calculated next delivery date
+   - Only visible when product has delivery schedule
+
+6. Added helper methods to customer TypeScript
+   - File: customer-dashboard.component.ts
+   - getNextDeliveryDate(): Calculates next Saturday/Sunday
+   - getDeliveryScheduleDisplayText(): Formats schedule text
+
+FUTURE ENHANCEMENTS
+-------------------
+- Payment gateway integration
+- Email notifications
+- SMS alerts
+- Advanced analytics and reporting
+- Product reviews and ratings
+- Vendor ratings
+- Advanced search filters
+- Order tracking with GPS
+- Multi-language support
+- Dark mode support
+- Mobile application (iOS/Android)
+- Push notifications
+- Loyalty programs
+- Discount and coupon system
+- Inventory management automation
+- Multi-delivery schedule support (multiple days per week)
+- Custom delivery time slots
+- Recurring order subscriptions
+
+DEPLOYMENT NOTES
+----------------
+Frontend:
+- Development: ng serve (http://localhost:4200)
+- Production: ng build --configuration production
+- Deployment: dist/healthy-food-bank
+
+Backend Services:
+- Each microservice runs on separate ports
+- Configure database connections in application.properties
+- Ensure all services are running before starting frontend
+
+DEVELOPMENT TEAM NOTES
+----------------------
+Code Organization:
+- Components: src/app/components/
+- Services: src/app/services/
+- Models: src/app/models/
+- Guards: src/app/guards/
+
+Coding Standards:
+- TypeScript strict mode enabled
+- Angular best practices followed
+- Reactive forms for all forms
+- Services for API communication
+- Guards for route protection
+- Models/interfaces for type safety
+
+Testing:
+- Unit tests with Jasmine/Karma
+- E2E tests with Protractor
+- API testing with Postman
+
+VERSION INFORMATION
+-------------------
+Application Version: 1.1.0
+Angular Version: 18.x
+Node Version: 18.x or higher
+Bootstrap Version: 5.x
+Java Version: 17 or higher
+Spring Boot Version: 3.x
+
+CONTACT & SUPPORT
+-----------------
+For issues, feature requests, or questions, please contact the development team.
+
+================================================================================
+                        END OF APPLICATION DETAILS
+================================================================================

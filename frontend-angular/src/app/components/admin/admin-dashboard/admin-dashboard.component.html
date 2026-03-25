@@ -1,0 +1,528 @@
+<!-- Admin Dashboard with Sidebar Layout -->
+<div class="admin-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h4>
+        <i class="fas fa-user-shield me-2"></i>
+        Admin Panel
+      </h4>
+      <p>{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+    </div>
+
+    <div class="sidebar-menu">
+      <div class="menu-item" [class.active]="activeSection === 'sales-analytics'" (click)="switchSection('sales-analytics')">
+        <i class="fas fa-chart-line"></i>
+        <span>Sales Analytics</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'reports'" (click)="switchSection('reports')">
+        <i class="fas fa-file-alt"></i>
+        <span>Reports</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'vendor-management'" (click)="switchSection('vendor-management')">
+        <i class="fas fa-store"></i>
+        <span>Vendor Management</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'pickup-management'" (click)="switchSection('pickup-management')">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>Pickup Management</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'delivery-management'" (click)="switchSection('delivery-management')">
+        <i class="fas fa-truck"></i>
+        <span>Delivery Management</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">
+        <i class="fas fa-sign-out-alt me-2"></i>
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Success/Error Messages -->
+    <div *ngIf="success" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ success }}
+      <button type="button" class="btn-close" aria-label="Close" (click)="clearMessages()"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button type="button" class="btn-close" aria-label="Close" (click)="clearMessages()"></button>
+    </div>
+
+    <!-- Sales Analytics Section -->
+    <div *ngIf="activeSection === 'sales-analytics'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-chart-line me-2 text-primary"></i>
+          Sales Analytics
+        </h2>
+        <p>Monitor sales performance and revenue metrics</p>
+      </div>
+
+      <div class="content-body">
+        <div class="placeholder-content">
+          <i class="fas fa-chart-bar"></i>
+          <h3>Sales Analytics Dashboard</h3>
+          <p>Comprehensive sales analytics and performance tracking will be available here</p>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div *ngIf="activeSection === 'reports'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-file-alt me-2 text-primary"></i>
+          Reports
+        </h2>
+        <p>Generate and view system reports</p>
+      </div>
+
+      <div class="content-body">
+        <div class="placeholder-content">
+          <i class="fas fa-file-pdf"></i>
+          <h3>System Reports</h3>
+          <p>Generate detailed reports for orders, vendors, customers, and inventory</p>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vendor Management Section -->
+    <div *ngIf="activeSection === 'vendor-management'">
+      <div class="content-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h2>
+              <i class="fas fa-store me-2 text-primary"></i>
+              Vendor Management
+            </h2>
+            <p>Manage vendor registration codes</p>
+          </div>
+          <button class="btn btn-success" (click)="toggleVendorCodeForm()" [disabled]="loading">
+            <i class="fas fa-plus me-2"></i>
+            {{ showVendorCodeForm ? 'Cancel' : 'Create Vendor Code' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <!-- Create Vendor Code Form -->
+        <div *ngIf="showVendorCodeForm" class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas fa-plus me-2"></i>
+              Create New Vendor Code
+            </h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="vendorCodeForm" (ngSubmit)="onCreateVendorCode()">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="vendorCode" class="form-label">Vendor Code *</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-key"></i></span>
+                    <input type="text" class="form-control" id="vendorCode" formControlName="vendorCode"
+                      [class.is-invalid]="vf['vendorCode'].errors && vf['vendorCode'].touched"
+                      placeholder="Enter unique vendor code (e.g. VND001)">
+                  </div>
+                  <div *ngIf="vf['vendorCode'].errors && vf['vendorCode'].touched" class="invalid-feedback d-block">
+                    <div *ngIf="vf['vendorCode'].errors['required']">Vendor code is required</div>
+                    <div *ngIf="vf['vendorCode'].errors['minlength']">Must be at least 5 characters</div>
+                    <div *ngIf="vf['vendorCode'].errors['maxlength']">Must not exceed 20 characters</div>
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="vendorId" class="form-label">Vendor ID *</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-id-badge"></i></span>
+                    <input type="text" class="form-control" id="vendorId" formControlName="vendorId"
+                      [class.is-invalid]="vf['vendorId'].errors && vf['vendorId'].touched"
+                      placeholder="Enter vendor ID (e.g. FRESH001)">
+                  </div>
+                  <div *ngIf="vf['vendorId'].errors && vf['vendorId'].touched" class="invalid-feedback d-block">
+                    <div *ngIf="vf['vendorId'].errors['required']">Vendor ID is required</div>
+                    <div *ngIf="vf['vendorId'].errors['minlength']">Must be at least 3 characters</div>
+                    <div *ngIf="vf['vendorId'].errors['maxlength']">Must not exceed 20 characters</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="vendorName" class="form-label">Vendor Name *</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-store"></i></span>
+                    <input type="text" class="form-control" id="vendorName" formControlName="vendorName"
+                      [class.is-invalid]="vf['vendorName'].errors && vf['vendorName'].touched"
+                      placeholder="Enter vendor business name">
+                  </div>
+                  <div *ngIf="vf['vendorName'].errors && vf['vendorName'].touched" class="invalid-feedback d-block">
+                    <div *ngIf="vf['vendorName'].errors['required']">Vendor name is required</div>
+                    <div *ngIf="vf['vendorName'].errors['minlength']">Must be at least 3 characters</div>
+                    <div *ngIf="vf['vendorName'].errors['maxlength']">Must not exceed 100 characters</div>
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="description" class="form-label">Description (Optional)</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-info-circle"></i></span>
+                    <input type="text" class="form-control" id="description" formControlName="description"
+                      [class.is-invalid]="vf['description'].errors && vf['description'].touched"
+                      placeholder="Brief description of vendor business">
+                  </div>
+                  <div *ngIf="vf['description'].errors && vf['description'].touched" class="invalid-feedback d-block">
+                    <div *ngIf="vf['description'].errors['maxlength']">Must not exceed 255 characters</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary me-2" (click)="toggleVendorCodeForm()">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="creatingVendorCode || vendorCodeForm.invalid">
+                  <span *ngIf="creatingVendorCode" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!creatingVendorCode" class="fas fa-save me-2"></i>
+                  {{ creatingVendorCode ? 'Creating...' : 'Create Vendor Code' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Vendor Codes List -->
+        <div class="card">
+          <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+              <li class="nav-item">
+                <a class="nav-link" [class.active]="vendorActiveTab === 'all'" (click)="onVendorTabChange('all')" style="cursor: pointer">
+                  <i class="fas fa-list me-2"></i>
+                  All Codes ({{vendorCodes.length}})
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" [class.active]="vendorActiveTab === 'unused'" (click)="onVendorTabChange('unused')" style="cursor: pointer">
+                  <i class="fas fa-clock me-2 text-warning"></i>
+                  Unused ({{unusedVendorCodes.length}})
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" [class.active]="vendorActiveTab === 'used'" (click)="onVendorTabChange('used')" style="cursor: pointer">
+                  <i class="fas fa-check me-2 text-warning"></i>
+                  Used ({{usedVendorCodes.length}})
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <!-- Loading State -->
+            <div *ngIf="loading" class="text-center py-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2 text-muted">Loading vendor codes...</p>
+            </div>
+
+            <!-- All Vendor Codes -->
+            <div *ngIf="!loading && vendorActiveTab === 'all'">
+              <div *ngIf="vendorCodes.length === 0" class="text-center py-4">
+                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                <p class="text-muted">No vendor codes found. Create your first vendor code!</p>
+              </div>
+
+              <div class="table-responsive" *ngIf="vendorCodes.length > 0">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Vendor ID</th>
+                      <th>Vendor Name</th>
+                      <th>Status</th>
+                      <th>Created Date</th>
+                      <th>Used Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let code of vendorCodes">
+                      <td><code>{{code.vendorCode}}</code></td>
+                      <td>{{code.vendorId}}</td>
+                      <td>{{code.vendorName}}</td>
+                      <td>
+                        <span *ngIf="!code.used" class="badge bg-warning">
+                          <i class="fas fa-clock me-1"></i>
+                          Unused
+                        </span>
+                        <span *ngIf="code.used" class="badge bg-success">
+                          <i class="fas fa-check me-1"></i>
+                          Used
+                        </span>
+                      </td>
+                      <td>{{formatDate(code.createdDate)}}</td>
+                      <td>{{code.usedDate ? formatDate(code.usedDate) : 'N/A'}}</td>
+                      <td>
+                        <button *ngIf="!code.used && code.active" class="btn btn-sm btn-outline-danger"
+                          (click)="deactivateVendorCode(code.id!)" title="Deactivate Code">
+                          <i class="fas fa-ban"></i>
+                        </button>
+                        <span *ngIf="code.used" class="text-muted">
+                          <i class="fas fa-lock" title="Cannot modify used codes"></i>
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Unused Vendor Codes -->
+            <div *ngIf="!loading && vendorActiveTab === 'unused'">
+              <div *ngIf="unusedVendorCodes.length === 0" class="text-center py-4">
+                <i class="fas fa-clock fa-3x text-warning mb-3"></i>
+                <p class="text-muted">No unused vendor codes available.</p>
+              </div>
+
+              <div class="row" *ngIf="unusedVendorCodes.length > 0">
+                <div class="col-md-6 col-lg-4 mb-3" *ngFor="let code of unusedVendorCodes">
+                  <div class="card border-warning">
+                    <div class="card-body">
+                      <h6 class="card-title">
+                        <code>{{code.vendorCode}}</code>
+                        <span class="badge bg-warning ms-2">Available</span>
+                      </h6>
+                      <p class="card-text">
+                        <strong>Vendor ID:</strong> {{code.vendorId}}<br>
+                        <strong>Name:</strong> {{code.vendorName}}<br>
+                        <strong>Created:</strong> {{formatDate(code.createdDate)}}<br>
+                        <small class="text-muted">{{code.description || 'No description'}}</small>
+                      </p>
+                      <button class="btn btn-sm btn-outline-danger" (click)="deactivateVendorCode(code.id!)"
+                        title="Deactivate Code">
+                        <i class="fas fa-ban me-1"></i>
+                        Deactivate
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Used Vendor Codes -->
+            <div *ngIf="!loading && vendorActiveTab === 'used'">
+              <div *ngIf="usedVendorCodes.length === 0" class="text-center py-4">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <p class="text-muted">No vendor codes have been used yet.</p>
+              </div>
+
+              <div class="row" *ngIf="usedVendorCodes.length > 0">
+                <div class="col-md-6 col-lg-4 mb-3" *ngFor="let code of usedVendorCodes">
+                  <div class="card border-success">
+                    <div class="card-body">
+                      <h6 class="card-title">
+                        <code>{{code.vendorCode}}</code>
+                        <span class="badge bg-success ms-2">Used</span>
+                      </h6>
+                      <p class="card-text">
+                        <strong>Vendor ID:</strong> {{code.vendorId}}<br>
+                        <strong>Name:</strong> {{code.vendorName}}<br>
+                        <strong>Used:</strong> {{formatDate(code.usedDate)}}<br>
+                        <strong>Used By:</strong> User ID {{code.usedBy}}<br>
+                        <small class="text-muted">{{code.description || 'No description'}}</small>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pickup Management Section -->
+    <div *ngIf="activeSection === 'pickup-management'">
+      <div class="content-header">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h2>
+              <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+              Pickup Management
+            </h2>
+            <p>Manage customer pickup points</p>
+          </div>
+          <button class="btn btn-success" (click)="togglePickupPointForm()" [disabled]="loading">
+            <i class="fas fa-plus me-2"></i>
+            {{ showPickupPointForm ? 'Cancel' : 'Add Pickup Point' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="content-body">
+        <!-- Create/Edit Pickup Point Form -->
+        <div *ngIf="showPickupPointForm" class="card mb-4">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fas" [class.fa-plus]="!editingPickupPoint" [class.fa-edit]="editingPickupPoint" class="me-2"></i>
+              {{ editingPickupPoint ? 'Edit Pickup Point' : 'Add New Pickup Point' }}
+            </h5>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="pickupPointForm" (ngSubmit)="onCreatePickupPoint()">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label for="name" class="form-label">Pickup Point Name *</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-store"></i></span>
+                    <input type="text" class="form-control" id="name" formControlName="name"
+                      [class.is-invalid]="pf['name'].errors && pf['name'].touched"
+                      placeholder="Enter pickup point name">
+                  </div>
+                  <div *ngIf="pf['name'].errors && pf['name'].touched" class="invalid-feedback d-block">
+                    <div *ngIf="pf['name'].errors['required']">Name is required</div>
+                    <div *ngIf="pf['name'].errors['minlength']">Must be at least 3 characters</div>
+                    <div *ngIf="pf['name'].errors['maxlength']">Must not exceed 100 characters</div>
+                  </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                  <label for="contactNumber" class="form-label">Contact Number</label>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                    <input type="text" class="form-control" id="contactNumber" formControlName="contactNumber"
+                      [class.is-invalid]="pf['contactNumber'].errors && pf['contactNumber'].touched"
+                      placeholder="Enter contact number">
+                  </div>
+                  <div *ngIf="pf['contactNumber'].errors && pf['contactNumber'].touched" class="invalid-feedback d-block">
+                    <div *ngIf="pf['contactNumber'].errors['pattern']">Invalid phone number format</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="address" class="form-label">Address *</label>
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-map-marker-alt"></i></span>
+                  <textarea class="form-control" id="address" formControlName="address" rows="2"
+                    [class.is-invalid]="pf['address'].errors && pf['address'].touched"
+                    placeholder="Enter full address"></textarea>
+                </div>
+                <div *ngIf="pf['address'].errors && pf['address'].touched" class="invalid-feedback d-block">
+                  <div *ngIf="pf['address'].errors['required']">Address is required</div>
+                  <div *ngIf="pf['address'].errors['minlength']">Must be at least 10 characters</div>
+                  <div *ngIf="pf['address'].errors['maxlength']">Must not exceed 255 characters</div>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-secondary me-2" (click)="togglePickupPointForm()">
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="creatingPickupPoint || pickupPointForm.invalid">
+                  <span *ngIf="creatingPickupPoint" class="spinner-border spinner-border-sm me-2"></span>
+                  <i *ngIf="!creatingPickupPoint" class="fas fa-save me-2"></i>
+                  {{ creatingPickupPoint ? 'Saving...' : (editingPickupPoint ? 'Update' : 'Create') }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Pickup Points List -->
+        <div *ngIf="loading" class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2 text-muted">Loading pickup points...</p>
+        </div>
+
+        <div *ngIf="!loading && pickupPoints.length === 0" class="text-center py-5">
+          <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+          <p class="text-muted">No pickup points found. Add your first pickup point!</p>
+        </div>
+
+        <div class="row" *ngIf="!loading && pickupPoints.length > 0">
+          <div class="col-md-6 col-lg-4 mb-4" *ngFor="let point of pickupPoints">
+            <div class="card h-100" [class.border-success]="point.active" [class.border-secondary]="!point.active">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h5 class="card-title mb-0">
+                    <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                    {{point.name}}
+                  </h5>
+                  <span class="badge" [class.bg-success]="point.active" [class.bg-danger]="!point.active">
+                    {{ point.active ? 'Active' : 'Inactive' }}
+                  </span>
+                </div>
+                <p class="card-text">
+                  <small class="text-muted">
+                    <i class="fas fa-map me-2"></i>
+                    {{point.address}}
+                  </small>
+                </p>
+                <p class="card-text" *ngIf="point.contactNumber">
+                  <small class="text-muted">
+                    <i class="fas fa-phone me-2"></i>
+                    {{point.contactNumber}}
+                  </small>
+                </p>
+                <p class="card-text">
+                  <small class="text-muted">
+                    Created: {{formatDate(point.createdDate)}}
+                  </small>
+                </p>
+
+                <div class="d-flex gap-2 mt-3">
+                  <button class="btn btn-sm btn-outline-primary" (click)="editPickupPoint(point)" title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-sm btn-link p-0 border-0"
+                    (click)="togglePickupPointStatus(point)"
+                    [title]="point.active ? 'Click to Deactivate' : 'Click to Activate'"
+                    style="text-decoration: none;">
+                    <i class="fas fa-toggle-on text-success" *ngIf="point.active" style="font-size: 1.5rem;"></i>
+                    <i class="fas fa-toggle-off text-danger" *ngIf="!point.active" style="font-size: 1.5rem;"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deletePickupPoint(point.id!)" title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Management Section -->
+    <div *ngIf="activeSection === 'delivery-management'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-truck me-2 text-primary"></i>
+          Delivery Management
+        </h2>
+        <p>Manage delivery operations and tracking</p>
+      </div>
+
+      <div class="content-body">
+        <div class="placeholder-content">
+          <i class="fas fa-shipping-fast"></i>
+          <h3>Delivery Management System</h3>
+          <p>Track deliveries, assign delivery personnel, and manage delivery schedules</p>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

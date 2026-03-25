@@ -1,0 +1,128 @@
+<!-- Customer Profile with Sidebar Layout -->
+<div class="customer-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h4>
+        <i class="fas fa-shopping-cart me-2"></i>
+        Customer Portal
+      </h4>
+      <p>{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+    </div>
+
+    <div class="sidebar-menu">
+      <div class="menu-item" (click)="backToDashboard()">
+        <i class="fas fa-shopping-bag"></i>
+        <span>Browse Products</span>
+      </div>
+      <div class="menu-item active">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="backToDashboard()">
+        <i class="fas fa-arrow-left me-2"></i>
+        Back to Dashboard
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Success/Error Messages -->
+    <div *ngIf="success" class="alert alert-success alert-dismissible fade show mb-3">
+      <i class="fas fa-check-circle me-2"></i>{{ success }}
+      <button type="button" class="btn-close" (click)="success = ''"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show mb-3">
+      <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+      <button type="button" class="btn-close" (click)="error = ''"></button>
+    </div>
+
+    <!-- Profile Form -->
+    <div class="profile-card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-user me-2"></i>Customer Profile Information
+        </h5>
+      </div>
+      <div class="card-body">
+        <form [formGroup]="profileForm" (ngSubmit)="onUpdateProfile()">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="firstName" class="form-label">First Name *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="firstName"
+                formControlName="firstName"
+                [class.is-invalid]="f['firstName'].invalid && f['firstName'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['firstName'].errors?.['required']">First name is required</div>
+                <div *ngIf="f['firstName'].errors?.['minlength']">First name must be at least 2 characters</div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="lastName" class="form-label">Last Name *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="lastName"
+                formControlName="lastName"
+                [class.is-invalid]="f['lastName'].invalid && f['lastName'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['lastName'].errors?.['required']">Last name is required</div>
+                <div *ngIf="f['lastName'].errors?.['minlength']">Last name must be at least 2 characters</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="email" class="form-label">Email Address *</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                [class.is-invalid]="f['email'].invalid && f['email'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['email'].errors?.['required']">Email is required</div>
+                <div *ngIf="f['email'].errors?.['email']">Please enter a valid email address</div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="phoneNumber" class="form-label">Phone Number</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phoneNumber"
+                formControlName="phoneNumber"
+                placeholder="1234567890"
+                [class.is-invalid]="f['phoneNumber'].invalid && f['phoneNumber'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['phoneNumber'].errors?.['pattern']">Please enter a valid 10-digit phone number</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end">
+            <button
+              type="submit"
+              class="btn btn-success"
+              [disabled]="profileForm.invalid || loading">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              <i *ngIf="!loading" class="fas fa-save me-2"></i>
+              {{ loading ? 'Updating...' : 'Update Profile' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

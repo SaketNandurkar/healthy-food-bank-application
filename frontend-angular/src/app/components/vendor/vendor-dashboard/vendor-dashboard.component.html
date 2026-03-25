@@ -1,0 +1,760 @@
+<!-- Vendor Dashboard with Sidebar Layout -->
+<div class="vendor-container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h4>
+        <i class="fas fa-store me-2"></i>
+        Vendor Portal
+      </h4>
+      <p>{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+    </div>
+
+    <div class="sidebar-menu">
+      <div class="menu-item" [class.active]="activeSection === 'stock-management'" (click)="switchSection('stock-management')">
+        <i class="fas fa-boxes"></i>
+        <span>Stock Management</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'order-management'" (click)="switchSection('order-management')">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Order Management</span>
+      </div>
+      <div class="menu-item" (click)="navigateToPickupPoints()">
+        <i class="fas fa-map-marker-alt"></i>
+        <span>My Pickup Points</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'analytics'" (click)="switchSection('analytics')">
+        <i class="fas fa-chart-line"></i>
+        <span>Analytics</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'reports'" (click)="switchSection('reports')">
+        <i class="fas fa-file-alt"></i>
+        <span>Reports</span>
+      </div>
+      <div class="menu-item" [class.active]="activeSection === 'delivery-schedules'" (click)="switchSection('delivery-schedules')">
+        <i class="fas fa-truck"></i>
+        <span>Delivery Schedules</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">
+        <i class="fas fa-sign-out-alt me-2"></i>
+        Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Success/Error Messages -->
+    <div *ngIf="success" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+      <i class="fas fa-check-circle me-2"></i>
+      {{ success }}
+      <button type="button" class="btn-close" aria-label="Close" (click)="success = ''"></button>
+    </div>
+
+    <div *ngIf="error" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error }}
+      <button type="button" class="btn-close" aria-label="Close" (click)="error = ''"></button>
+    </div>
+
+    <!-- Stock Management Section -->
+    <div *ngIf="activeSection === 'stock-management'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-boxes me-2 text-primary"></i>
+          Stock Management
+        </h2>
+        <p>Manage your products and inventory</p>
+      </div>
+
+      <div class="content-body">
+        <!-- Dashboard Stats -->
+        <div class="stats-row">
+          <div class="stat-card bg-primary">
+            <div class="stat-icon">
+              <i class="fas fa-boxes"></i>
+            </div>
+            <div class="stat-content">
+              <h6>Total Products</h6>
+              <h3>{{ totalProducts }}</h3>
+            </div>
+          </div>
+
+          <div class="stat-card bg-success">
+            <div class="stat-icon">
+              <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="stat-content">
+              <h6>Total Value</h6>
+              <h3>₹{{ totalValue | number:'1.2-2' }}</h3>
+            </div>
+          </div>
+
+          <div class="stat-card bg-warning">
+            <div class="stat-icon">
+              <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+              <h6>Low Stock Items</h6>
+              <h3>{{ lowStockProducts }}</h3>
+            </div>
+          </div>
+
+          <div class="stat-card bg-info">
+            <div class="stat-icon">
+              <i class="fas fa-list"></i>
+            </div>
+            <div class="stat-content">
+              <h6>Categories</h6>
+              <h3>{{ categories.length }}</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product Management -->
+        <div class="card shadow">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Product Management</h5>
+              <button class="btn btn-success" (click)="openProductModal()">
+                <i class="fas fa-plus me-2"></i>Add New Product
+              </button>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <!-- Search and Filter -->
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-text"><i class="fas fa-search"></i></span>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="Search products..."
+                    [(ngModel)]="searchTerm"
+                    (input)="onSearchChange()">
+                </div>
+              </div>
+              <div class="col-md-4">
+                <select class="form-select" [(ngModel)]="selectedCategory" (change)="onCategoryChange()">
+                  <option value="">All Categories</option>
+                  <option *ngFor="let category of categories" [value]="category">
+                    {{ getCategoryDisplayName(category) }}
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-2">
+                <div class="d-grid gap-2">
+                  <button class="btn btn-outline-secondary" (click)="manualRefresh()">
+                    <i class="fas fa-sync-alt me-2"></i>Refresh
+                  </button>
+                  <div class="form-check form-switch">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="autoRefresh"
+                      [checked]="autoRefreshEnabled"
+                      (change)="toggleAutoRefresh()">
+                    <label class="form-check-label" for="autoRefresh">
+                      Auto-refresh ({{ refreshCountdown }}s)
+                    </label>
+                  </div>
+                  <small class="text-muted">
+                    Last updated: {{ lastRefresh | date:'HH:mm:ss' }}
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>Image</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let product of filteredProducts">
+                    <td>
+                      <img
+                        [src]="product.imageUrl || 'assets/images/product-placeholder.png'"
+                        alt="{{ product.name }}"
+                        class="product-image rounded">
+                    </td>
+                    <td>
+                      <div>
+                        <strong>{{ product.name }}</strong>
+                        <small class="d-block text-muted">{{ product.description | slice:0:50 }}...</small>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-secondary">{{ getCategoryDisplayName(product.category) }}</span>
+                    </td>
+                    <td>
+                      <strong>₹{{ product.price | number:'1.2-2' }}</strong>
+                      <small class="d-block text-muted">per {{ product.unitQuantity || 1 }} {{ product.productUnit }}</small>
+                    </td>
+                    <td>
+                      <span [class]="getStockStatusClass(product.stockQuantity)">
+                        {{ product.stockQuantity }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="badge"
+                            [class.bg-success]="product.stockQuantity > 10"
+                            [class.bg-warning]="product.stockQuantity > 0 && product.stockQuantity <= 10"
+                            [class.bg-danger]="product.stockQuantity === 0">
+                        {{ getStockStatusText(product.stockQuantity) }}
+                      </span>
+                    </td>
+                    <td>
+                      <div class="btn-group" role="group">
+                        <button
+                          class="btn btn-sm btn-outline-primary"
+                          (click)="openProductModal(product)"
+                          title="Edit">
+                          <i class="fas fa-edit"></i>
+                        </button>
+                        <button
+                          class="btn btn-sm btn-outline-danger"
+                          (click)="deleteProduct(product)"
+                          title="Delete">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr *ngIf="filteredProducts.length === 0 && !loading">
+                    <td colspan="7" class="text-center py-4">
+                      <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                      <p class="text-muted">No products found. Start by adding your first product!</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div *ngIf="loading" class="text-center py-4">
+              <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="text-muted mt-2">Loading products...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Management Section -->
+    <div *ngIf="activeSection === 'order-management'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-shopping-cart me-2 text-primary"></i>
+          Order Management
+        </h2>
+        <p>Track and manage your orders</p>
+      </div>
+
+      <div class="content-body">
+        <!-- Order Tabs -->
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeOrderTab === 'issued'"
+                    (click)="switchOrderTab('issued')" type="button">
+              <i class="fas fa-file-invoice me-2"></i>Issued Orders
+              <span class="badge bg-warning text-dark ms-2">{{ issuedOrders.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeOrderTab === 'scheduled'"
+                    (click)="switchOrderTab('scheduled')" type="button">
+              <i class="fas fa-calendar-check me-2"></i>Scheduled Orders
+              <span class="badge bg-success ms-2">{{ scheduledOrders.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeOrderTab === 'cancelled'"
+                    (click)="switchOrderTab('cancelled')" type="button">
+              <i class="fas fa-ban me-2"></i>Cancelled/Rejected
+              <span class="badge bg-danger ms-2">{{ cancelledOrders.length }}</span>
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" [class.active]="activeOrderTab === 'history'"
+                    (click)="switchOrderTab('history')" type="button">
+              <i class="fas fa-history me-2"></i>All Order History
+              <span class="badge bg-secondary ms-2">{{ orderHistory.length }}</span>
+            </button>
+          </li>
+        </ul>
+
+        <!-- Issued Orders Tab -->
+        <div *ngIf="activeOrderTab === 'issued'" class="tab-content">
+          <div class="card shadow-lg border-0">
+            <div class="card-header bg-warning text-dark">
+              <h5 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Issued Orders - Awaiting Your Response</h5>
+              <small>Accept or reject these orders to proceed</small>
+            </div>
+            <div class="card-body" style="max-height: 700px; overflow-y: auto;">
+              <div *ngIf="issuedOrders.length === 0" class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+                <h6 class="text-muted">No Issued Orders</h6>
+                <p class="text-muted small">New customer orders will appear here</p>
+              </div>
+
+              <div *ngFor="let order of issuedOrders; let i = index" class="card mb-3 border-start border-warning border-4">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-8">
+                      <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-warning text-dark me-2">ISSUED</span>
+                        <small class="text-muted"><i class="far fa-clock me-1"></i>{{ order.orderPlacedDate | date:'short' }}</small>
+                      </div>
+                      <h6 class="mb-2"><i class="fas fa-shopping-bag me-2 text-primary"></i>{{ order.productName || order.orderName }}</h6>
+                      <p class="mb-1"><strong>Order ID:</strong> #{{ order.id }}</p>
+                      <p class="mb-1"><strong>Customer:</strong> {{ order.customerName || 'Customer #' + order.customerId }}</p>
+                      <p class="mb-1" *ngIf="order.customerPhone"><strong>Phone:</strong> {{ order.customerPhone }}</p>
+                      <p class="mb-1" *ngIf="order.customerPickupPoint"><strong>Pickup Point:</strong> {{ order.customerPickupPoint }}</p>
+                      <div class="row mt-2">
+                        <div class="col-6">
+                          <small class="text-muted">Quantity</small>
+                          <p class="mb-0"><strong>{{ order.orderQuantity }} {{ order.orderUnit }}</strong></p>
+                        </div>
+                        <div class="col-6">
+                          <small class="text-muted">Price</small>
+                          <p class="mb-0 text-success"><strong>₹{{ order.orderPrice | number:'1.2-2' }}</strong></p>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center justify-content-end">
+                      <div class="d-grid gap-2 w-100">
+                        <button class="btn btn-success" (click)="acceptOrder(order.id)" [disabled]="loading">
+                          <i class="fas fa-check-circle me-2"></i>Accept Order
+                        </button>
+                        <button class="btn btn-danger" (click)="rejectOrder(order.id)" [disabled]="loading">
+                          <i class="fas fa-times-circle me-2"></i>Reject Order
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scheduled Orders Tab -->
+        <div *ngIf="activeOrderTab === 'scheduled'" class="tab-content">
+          <div class="card shadow-lg border-0">
+            <div class="card-header bg-success text-white">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Scheduled Orders - Ready for Delivery</h5>
+                  <small>Orders you've accepted and scheduled for delivery</small>
+                </div>
+                <div *ngIf="deliveryDates.length > 0">
+                  <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="deliverySheetDropdown" data-bs-toggle="dropdown">
+                      <i class="fas fa-file-pdf me-2"></i>Download Delivery Sheet
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="deliverySheetDropdown">
+                      <li *ngFor="let date of deliveryDates">
+                        <a class="dropdown-item" (click)="downloadDeliverySheet(date)">
+                          <i class="fas fa-calendar me-2"></i>{{ date | date:'mediumDate' }}
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-body" style="max-height: 700px; overflow-y: auto;">
+              <div *ngIf="scheduledOrders.length === 0" class="text-center py-5">
+                <i class="fas fa-calendar-times fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+                <h6 class="text-muted">No Scheduled Orders</h6>
+                <p class="text-muted small">Accepted orders will appear here</p>
+              </div>
+
+              <div *ngFor="let order of scheduledOrders; let i = index" class="card mb-3 border-start border-success border-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-success me-2">SCHEDULED</span>
+                    <small class="text-muted"><i class="far fa-clock me-1"></i>{{ order.orderPlacedDate | date:'short' }}</small>
+                  </div>
+                  <h6 class="mb-2"><i class="fas fa-shopping-bag me-2 text-success"></i>{{ order.productName || order.orderName }}</h6>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Order ID:</strong> #{{ order.id }}</p>
+                      <p class="mb-1"><strong>Customer:</strong> {{ order.customerName || 'Customer #' + order.customerId }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1" *ngIf="order.customerPhone"><strong>Phone:</strong> {{ order.customerPhone }}</p>
+                      <p class="mb-1" *ngIf="order.customerPickupPoint"><strong>Pickup:</strong> {{ order.customerPickupPoint }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Quantity:</strong> {{ order.orderQuantity }} {{ order.orderUnit }}</p>
+                    </div>
+                    <div class="col-md-3 text-end">
+                      <p class="mb-1 text-success"><strong>₹{{ order.orderPrice | number:'1.2-2' }}</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cancelled/Rejected Orders Tab -->
+        <div *ngIf="activeOrderTab === 'cancelled'" class="tab-content">
+          <div class="card shadow-lg border-0">
+            <div class="card-header bg-danger text-white">
+              <h5 class="mb-0"><i class="fas fa-ban me-2"></i>Cancelled/Rejected Orders</h5>
+              <small>Orders you've rejected or that were cancelled</small>
+            </div>
+            <div class="card-body" style="max-height: 700px; overflow-y: auto;">
+              <div *ngIf="cancelledOrders.length === 0" class="text-center py-5">
+                <i class="fas fa-check-circle fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+                <h6 class="text-muted">No Cancelled Orders</h6>
+                <p class="text-muted small">Rejected orders will appear here</p>
+              </div>
+
+              <div *ngFor="let order of cancelledOrders; let i = index" class="card mb-3 border-start border-danger border-4">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-danger me-2">CANCELLED BY VENDOR</span>
+                    <small class="text-muted"><i class="far fa-clock me-1"></i>{{ order.orderPlacedDate | date:'short' }}</small>
+                  </div>
+                  <h6 class="mb-2"><i class="fas fa-shopping-bag me-2 text-danger"></i>{{ order.productName || order.orderName }}</h6>
+                  <div class="row">
+                    <div class="col-md-4">
+                      <p class="mb-1"><strong>Order ID:</strong> #{{ order.id }}</p>
+                      <p class="mb-1"><strong>Customer:</strong> {{ order.customerName || 'Customer #' + order.customerId }}</p>
+                    </div>
+                    <div class="col-md-4">
+                      <p class="mb-1"><strong>Quantity:</strong> {{ order.orderQuantity }} {{ order.orderUnit }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                      <p class="mb-1 text-muted"><strong>₹{{ order.orderPrice | number:'1.2-2' }}</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- All Order History Tab -->
+        <div *ngIf="activeOrderTab === 'history'" class="tab-content">
+          <div class="card shadow-lg border-0">
+            <div class="card-header bg-secondary text-white">
+              <h5 class="mb-0"><i class="fas fa-history me-2"></i>Complete Order History</h5>
+              <small>All orders across all statuses</small>
+            </div>
+            <div class="card-body" style="max-height: 700px; overflow-y: auto;">
+              <div *ngIf="orderHistory.length === 0" class="text-center py-5">
+                <i class="fas fa-archive fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+                <h6 class="text-muted">No Order History</h6>
+                <p class="text-muted small">Your order history will appear here</p>
+              </div>
+
+              <div *ngFor="let order of orderHistory; let i = index" class="card mb-3 border-start border-4"
+                   [class.border-success]="order.orderStatus === 'DELIVERED' || order.orderStatus === 'SCHEDULED'"
+                   [class.border-primary]="order.orderStatus === 'PROCESSING'"
+                   [class.border-danger]="order.orderStatus === 'CANCELLED' || order.orderStatus === 'CANCELLED_BY_VENDOR'">
+                <div class="card-body">
+                  <div class="d-flex align-items-center mb-2">
+                    <span class="badge px-3 py-2"
+                          [class.bg-success]="order.orderStatus === 'DELIVERED' || order.orderStatus === 'SCHEDULED'"
+                          [class.bg-primary]="order.orderStatus === 'PROCESSING'"
+                          [class.bg-danger]="order.orderStatus === 'CANCELLED' || order.orderStatus === 'CANCELLED_BY_VENDOR'">
+                      {{ order.orderStatus }}
+                    </span>
+                    <small class="text-muted ms-2"><i class="far fa-clock me-1"></i>{{ order.orderPlacedDate | date:'short' }}</small>
+                  </div>
+                  <h6 class="mb-2"><i class="fas fa-shopping-bag me-2"></i>{{ order.productName || order.orderName }}</h6>
+                  <div class="row">
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Order ID:</strong> #{{ order.id }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Customer:</strong> {{ order.customerName || 'Customer #' + order.customerId }}</p>
+                    </div>
+                    <div class="col-md-3">
+                      <p class="mb-1"><strong>Quantity:</strong> {{ order.orderQuantity }} {{ order.orderUnit }}</p>
+                    </div>
+                    <div class="col-md-3 text-end">
+                      <p class="mb-1" [class.text-success]="order.orderStatus === 'DELIVERED' || order.orderStatus === 'SCHEDULED'"
+                          [class.text-muted]="order.orderStatus === 'CANCELLED' || order.orderStatus === 'CANCELLED_BY_VENDOR'">
+                        <strong>₹{{ order.orderPrice | number:'1.2-2' }}</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Analytics Section -->
+    <div *ngIf="activeSection === 'analytics'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-chart-line me-2 text-primary"></i>
+          Analytics
+        </h2>
+        <p>Track your sales performance and trends</p>
+      </div>
+
+      <div class="content-body">
+        <div class="placeholder-content">
+          <i class="fas fa-chart-bar"></i>
+          <h3>Sales Analytics Dashboard</h3>
+          <p>Comprehensive analytics and performance tracking will be available here</p>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Section -->
+    <div *ngIf="activeSection === 'reports'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-file-alt me-2 text-primary"></i>
+          Reports
+        </h2>
+        <p>Generate and view detailed reports</p>
+      </div>
+
+      <div class="content-body">
+        <div class="placeholder-content">
+          <i class="fas fa-file-pdf"></i>
+          <h3>System Reports</h3>
+          <p>Generate detailed reports for products, orders, and sales</p>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Schedules Section -->
+    <div *ngIf="activeSection === 'delivery-schedules'">
+      <div class="content-header">
+        <h2>
+          <i class="fas fa-truck me-2 text-primary"></i>
+          Delivery Schedules
+        </h2>
+        <p>Manage delivery routes and schedules</p>
+      </div>
+
+      <div class="content-body">
+        <div class="placeholder-content">
+          <i class="fas fa-calendar-alt"></i>
+          <h3>Delivery Management</h3>
+          <p>Plan and track delivery schedules for your orders</p>
+          <div class="coming-soon-badge">Coming Soon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Product Modal -->
+<div class="modal fade" [class.show]="showProductModal" [style.display]="showProductModal ? 'block' : 'none'"
+     tabindex="-1" *ngIf="showProductModal">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmitProduct()">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-plus me-2" *ngIf="!editingProduct"></i>
+            <i class="fas fa-edit me-2" *ngIf="editingProduct"></i>
+            {{ editingProduct ? 'Edit Product' : 'Add New Product' }}
+          </h5>
+          <button type="button" class="btn-close" (click)="closeProductModal()"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="name" class="form-label">Product Name *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                formControlName="name"
+                [class.is-invalid]="f['name'].invalid && f['name'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['name'].errors?.['required']">Product name is required</div>
+                <div *ngIf="f['name'].errors?.['minlength']">Name must be at least 2 characters</div>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="category" class="form-label">Category *</label>
+              <select
+                class="form-select"
+                id="category"
+                formControlName="category"
+                [class.is-invalid]="f['category'].invalid && f['category'].touched">
+                <option value="">Select Category</option>
+                <option *ngFor="let category of categories" [value]="category">
+                  {{ getCategoryDisplayName(category) }}
+                </option>
+              </select>
+              <div class="invalid-feedback">
+                <div *ngIf="f['category'].errors?.['required']">Please select a category</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="description" class="form-label">Description *</label>
+            <textarea
+              class="form-control"
+              id="description"
+              rows="3"
+              formControlName="description"
+              [class.is-invalid]="f['description'].invalid && f['description'].touched"></textarea>
+            <div class="invalid-feedback">
+              <div *ngIf="f['description'].errors?.['required']">Description is required</div>
+              <div *ngIf="f['description'].errors?.['minlength']">Description must be at least 10 characters</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-3 mb-3">
+              <label for="price" class="form-label">Price (₹) *</label>
+              <input
+                type="number"
+                class="form-control"
+                id="price"
+                step="0.01"
+                min="0"
+                formControlName="price"
+                [class.is-invalid]="f['price'].invalid && f['price'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['price'].errors?.['required']">Price is required</div>
+                <div *ngIf="f['price'].errors?.['min']">Price must be greater than 0</div>
+              </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label for="unitQuantity" class="form-label">Quantity per Unit *</label>
+              <input
+                type="number"
+                class="form-control"
+                id="unitQuantity"
+                step="0.01"
+                min="0.01"
+                placeholder="e.g., 1, 250, 500"
+                formControlName="unitQuantity"
+                [class.is-invalid]="f['unitQuantity'].invalid && f['unitQuantity'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['unitQuantity'].errors?.['required']">Quantity is required</div>
+                <div *ngIf="f['unitQuantity'].errors?.['min']">Quantity must be greater than 0</div>
+              </div>
+              <small class="form-text text-muted">e.g., 1 for "1 kg", 250 for "250 ml"</small>
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label for="productUnit" class="form-label">Unit *</label>
+              <select
+                class="form-select"
+                id="productUnit"
+                formControlName="productUnit"
+                [class.is-invalid]="f['productUnit'].invalid && f['productUnit'].touched">
+                <option value="">Select Unit</option>
+                <option value="kg">Kilogram (kg)</option>
+                <option value="g">Gram (g)</option>
+                <option value="litre">Litre (L)</option>
+                <option value="ml">Millilitre (ml)</option>
+                <option value="piece">Piece</option>
+                <option value="dozen">Dozen</option>
+                <option value="pack">Pack</option>
+                <option value="unit">Unit</option>
+              </select>
+              <div class="invalid-feedback">
+                <div *ngIf="f['productUnit'].errors?.['required']">Unit is required</div>
+              </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label for="stockQuantity" class="form-label">Stock Quantity *</label>
+              <input
+                type="number"
+                class="form-control"
+                id="stockQuantity"
+                min="0"
+                formControlName="stockQuantity"
+                [class.is-invalid]="f['stockQuantity'].invalid && f['stockQuantity'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['stockQuantity'].errors?.['required']">Stock quantity is required</div>
+                <div *ngIf="f['stockQuantity'].errors?.['min']">Stock quantity cannot be negative</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="deliverySchedule" class="form-label">Delivery Schedule (Optional)</label>
+              <select
+                class="form-select"
+                id="deliverySchedule"
+                formControlName="deliverySchedule">
+                <option value="">No specific schedule</option>
+                <option value="SATURDAY">Saturday</option>
+                <option value="SUNDAY">Sunday</option>
+              </select>
+              <small class="form-text text-muted">Select the delivery day for this product</small>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label for="imageUrl" class="form-label">Image URL (Optional)</label>
+              <input
+                type="url"
+                class="form-control"
+                id="imageUrl"
+                formControlName="imageUrl"
+                placeholder="https://example.com/image.jpg"
+                [class.is-invalid]="f['imageUrl'].invalid && f['imageUrl'].touched">
+              <div class="invalid-feedback">
+                <div *ngIf="f['imageUrl'].errors?.['pattern']">Please enter a valid URL</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeProductModal()">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-success"
+            [disabled]="productForm.invalid || loading">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+            <i *ngIf="!loading && editingProduct" class="fas fa-save me-2"></i>
+            <i *ngIf="!loading && !editingProduct" class="fas fa-plus me-2"></i>
+            {{ loading ? 'Saving...' : (editingProduct ? 'Update Product' : 'Add Product') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Backdrop -->
+<div class="modal-backdrop fade show" *ngIf="showProductModal"></div>
