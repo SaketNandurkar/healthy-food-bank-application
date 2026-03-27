@@ -6,17 +6,17 @@ import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
-import 'customer_shell.dart';
+import 'vendor_shell.dart';
 
-class CustomerProfileScreen extends ConsumerStatefulWidget {
-  const CustomerProfileScreen({super.key});
+class VendorProfileScreen extends ConsumerStatefulWidget {
+  const VendorProfileScreen({super.key});
 
   @override
-  ConsumerState<CustomerProfileScreen> createState() =>
-      _CustomerProfileScreenState();
+  ConsumerState<VendorProfileScreen> createState() =>
+      _VendorProfileScreenState();
 }
 
-class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
+class _VendorProfileScreenState extends ConsumerState<VendorProfileScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _entranceCtrl;
 
@@ -44,12 +44,8 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // ---- Green gradient profile header ----
             _buildProfileHeader(user),
-
             const SizedBox(height: 20),
-
-            // ---- Menu sections ----
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
@@ -74,15 +70,22 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
                       _MenuItem(
                         Icons.location_on_outlined,
                         'My Pickup Points',
+                        AppColors.success,
+                        () => Navigator.pushNamed(context, '/vendor/pickup-points'),
+                      ),
+                      _MenuItem(
+                        Icons.inventory_2_outlined,
+                        'My Products',
                         AppColors.info,
-                        () => Navigator.pushNamed(
-                            context, '/my-pickup-points'),
+                        () => VendorShell
+                            .shellKey.currentState
+                            ?.switchToTab(1),
                       ),
                       _MenuItem(
                         Icons.receipt_long_outlined,
                         'Order History',
                         AppColors.warning,
-                        () => CustomerShell
+                        () => VendorShell
                             .shellKey.currentState
                             ?.switchToTab(2),
                       ),
@@ -105,8 +108,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
                         Icons.notifications_outlined,
                         'Notifications',
                         AppColors.orange,
-                        () => Navigator.pushNamed(
-                            context, '/notifications'),
+                        () => Navigator.pushNamed(context, '/notifications'),
                       ),
                       _MenuItem(
                         Icons.settings_outlined,
@@ -230,7 +232,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Green gradient header with avatar, name, email, role badge ----
   Widget _buildProfileHeader(User? user) {
     return PremiumHeader(
       padding:
@@ -241,7 +242,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // -- Avatar circle with initials --
             Container(
               width: 88,
               height: 88,
@@ -262,7 +262,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
               ),
               child: Center(
                 child: Text(
-                  user?.initials ?? 'U',
+                  user?.initials ?? 'V',
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
@@ -271,12 +271,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
                 ),
               ),
             ),
-
             const SizedBox(height: 14),
-
-            // -- Full name --
             Text(
-              user?.fullName ?? 'User',
+              user?.fullName ?? 'Vendor',
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
@@ -285,8 +282,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
               ),
               textAlign: TextAlign.center,
             ),
-
-            // -- Email --
             if (user?.email != null) ...[
               const SizedBox(height: 4),
               Text(
@@ -298,40 +293,62 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
                 textAlign: TextAlign.center,
               ),
             ],
-
             const SizedBox(height: 10),
-
-            // -- Role badge --
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: Colors.white.withOpacity(0.15),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.check_circle,
-                    size: 14,
-                    color: Colors.white.withOpacity(0.9),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.15),
+                    ),
                   ),
-                  const SizedBox(width: 6),
-                  Text(
-                    user?.role.toString().split('.').last ?? 'CUSTOMER',
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withOpacity(0.95),
-                      letterSpacing: 0.5,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.store_rounded,
+                        size: 14,
+                        color: Colors.white.withOpacity(0.9),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'VENDOR',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withOpacity(0.95),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (user?.vendorId != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      user!.vendorId!,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white.withOpacity(0.8),
+                        letterSpacing: 0.3,
+                      ),
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
           ],
         ),
@@ -339,7 +356,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Section title (uppercase, muted) ----
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 10),
@@ -355,7 +371,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Menu card with grouped items ----
   Widget _buildMenuCard(List<_MenuItem> items) {
     return Container(
       decoration: BoxDecoration(
@@ -420,7 +435,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Logout confirmation dialog ----
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     HapticFeedback.mediumImpact();
     showDialog(
@@ -505,7 +519,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
   }
 }
 
-// ---- Private menu item data class ----
 class _MenuItem {
   final IconData icon;
   final String title;

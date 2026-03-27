@@ -62,29 +62,18 @@ class _NotificationsScreenState extends State<NotificationsScreen>
       body: Column(
         children: [
           PremiumHeader(
-            child: Row(
-              children: [
-                PressableScale(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    ),
-                    child: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                const Text(
-                  'Notifications',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
-                ),
-              ],
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  _buildBackButton(),
+                  const SizedBox(width: 12),
+                  const Text('Notifications',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                ],
+              ),
             ),
           ),
-
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -103,29 +92,16 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       decoration: premiumCardDecoration(),
                       child: Column(
                         children: [
-                          _buildToggleItem(
-                            'Order Updates',
-                            'Get notified about order status changes',
-                            Icons.local_shipping_outlined,
-                            'notif_order_updates',
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 64),
-                            child: Divider(height: 1),
-                          ),
-                          _buildToggleItem(
-                            'Delivery Alerts',
-                            'Notifications when your order is ready for pickup',
-                            Icons.notifications_active_outlined,
-                            'notif_delivery_alerts',
-                          ),
+                          _buildToggleItem('Order Updates', 'Get notified about order status changes',
+                              Icons.local_shipping_outlined, 'notif_order_updates'),
+                          _buildDivider(),
+                          _buildToggleItem('Delivery Alerts', 'Notifications when your order is ready',
+                              Icons.notifications_active_outlined, 'notif_delivery_alerts'),
                         ],
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-
+                  const SizedBox(height: 20),
                   StaggeredListItem(
                     index: 2,
                     animation: _entranceCtrl,
@@ -138,42 +114,29 @@ class _NotificationsScreenState extends State<NotificationsScreen>
                       decoration: premiumCardDecoration(),
                       child: Column(
                         children: [
-                          _buildToggleItem(
-                            'Promotions',
-                            'Special offers and seasonal discounts',
-                            Icons.local_offer_outlined,
-                            'notif_promotions',
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(left: 64),
-                            child: Divider(height: 1),
-                          ),
-                          _buildToggleItem(
-                            'New Products',
-                            'Be the first to know about new items',
-                            Icons.new_releases_outlined,
-                            'notif_new_products',
-                          ),
+                          _buildToggleItem('Promotions', 'Special offers and seasonal discounts',
+                              Icons.local_offer_outlined, 'notif_promotions'),
+                          _buildDivider(),
+                          _buildToggleItem('New Products', 'Be the first to know about new items',
+                              Icons.new_releases_outlined, 'notif_new_products'),
                         ],
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-
+                  const SizedBox(height: 20),
                   StaggeredListItem(
                     index: 4,
                     animation: _entranceCtrl,
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.04),
-                        borderRadius: BorderRadius.circular(14),
+                        color: AppColors.primarySubtle.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: AppColors.primary.withOpacity(0.1)),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline, color: AppColors.primary.withOpacity(0.6), size: 18),
+                          Icon(Icons.info_outline, color: AppColors.primary.withOpacity(0.5), size: 16),
                           const SizedBox(width: 10),
                           const Expanded(
                             child: Text(
@@ -194,18 +157,29 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     );
   }
 
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+        child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textHint,
-          letterSpacing: 1.2,
-        ),
-      ),
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(title.toUpperCase(),
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textHint, letterSpacing: 0.8)),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Padding(
+      padding: EdgeInsets.only(left: 56),
+      child: Divider(height: 1, color: AppColors.divider),
     );
   }
 
@@ -213,25 +187,25 @@ class _NotificationsScreenState extends State<NotificationsScreen>
     final isEnabled = _prefs[prefKey] ?? true;
     return InkWell(
       onTap: () => _togglePref(prefKey),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (isEnabled ? AppColors.primary : AppColors.textHint).withOpacity(0.08),
-                shape: BoxShape.circle,
+                color: (isEnabled ? AppColors.primary : AppColors.textHint).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: isEnabled ? AppColors.primary : AppColors.textHint, size: 20),
+              child: Icon(icon, color: isEnabled ? AppColors.primary : AppColors.textHint, size: 18),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
                   const SizedBox(height: 2),
                   Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                 ],

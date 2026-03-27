@@ -15,7 +15,12 @@ class ApiConfig {
   static String updateProfile(int userId) => '$userServiceUrl/user/profile/$userId';
   static String changePassword(int userId) => '$userServiceUrl/user/password/$userId';
 
+  // Admin - User Management
+  static const String adminUsersUrl = '$userServiceUrl/user/admin/users';
+  static const String adminUserStatsUrl = '$userServiceUrl/user/admin/users/stats';
+
   // Pickup Points
+  static const String pickupPointsUrl = '$userServiceUrl/pickup-points';
   static const String pickupPoints = '$userServiceUrl/pickup-points';
   static const String activePickupPoints = '$userServiceUrl/pickup-points/active';
   static String pickupPointById(int id) => '$userServiceUrl/pickup-points/$id';
@@ -30,10 +35,24 @@ class ApiConfig {
   static String deleteCustomerPickupPoint(int customerId, int pickupPointId) =>
       '$userServiceUrl/customer-pickup-points/$customerId/$pickupPointId';
 
+  // Vendor Pickup Points
+  static String vendorPickupPoints(String vendorId) =>
+      '$userServiceUrl/vendor-pickup-points/$vendorId';
+  static String vendorActivePickupPoints(String vendorId) =>
+      '$userServiceUrl/vendor-pickup-points/$vendorId/active';
+  static String addVendorPickupPoint(String vendorId) =>
+      '$userServiceUrl/vendor-pickup-points/$vendorId';
+  static String toggleVendorPickupPoint(String vendorId, int pickupPointId) =>
+      '$userServiceUrl/vendor-pickup-points/$vendorId/toggle/$pickupPointId';
+  static String deleteVendorPickupPoint(String vendorId, int pickupPointId) =>
+      '$userServiceUrl/vendor-pickup-points/$vendorId/$pickupPointId';
+
   // Product Service Endpoints
   static const String products = '$productServiceUrl/products';
   static String productById(int id) => '$productServiceUrl/products/$id';
   static String productsByVendor(String vendorId) => '$productServiceUrl/products/vendor/$vendorId';
+  static String productsByUser(int userId) => '$productServiceUrl/products/user/$userId';
+  static const String uploadProductImage = '$productServiceUrl/products/upload-image';
   static String productsByPickupPoint(int pickupPointId) =>
       '$productServiceUrl/products/by-pickup-point/$pickupPointId';
 
@@ -52,7 +71,8 @@ class ApiConfig {
   static String rejectOrder(int id) => '$orderServiceUrl/order/$id/reject';
   static String updateOrderStatus(int id) => '$orderServiceUrl/order/$id/status';
 
-  // Vendor Codes (Admin)
+  // Admin - Vendor Codes
+  static const String adminVendorCodesUrl = '$userServiceUrl/user/admin/vendor-codes';
   static const String vendorCodes = '$userServiceUrl/user/admin/vendor-codes';
   static const String unusedVendorCodes = '$userServiceUrl/user/admin/vendor-codes/unused';
   static const String usedVendorCodes = '$userServiceUrl/user/admin/vendor-codes/used';

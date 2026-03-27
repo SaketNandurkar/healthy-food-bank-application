@@ -1,87 +1,88 @@
 import 'package:flutter/material.dart';
 import '../config/theme.dart';
 import '../models/order.dart';
-import '../utils/premium_decorations.dart';
 
+/// Compact pill badge for stock status and order status.
 class StatusBadge extends StatelessWidget {
-  final String text;
-  final Color backgroundColor;
+  final String label;
+  final Color bgColor;
   final Color textColor;
-  final double fontSize;
 
-  const StatusBadge({
-    super.key,
-    required this.text,
-    required this.backgroundColor,
+  const StatusBadge._({
+    required this.label,
+    required this.bgColor,
     required this.textColor,
-    this.fontSize = 10,
   });
 
+  /// Stock status badge.
   factory StatusBadge.stock(String status) {
     switch (status) {
-      case 'Out of Stock':
-        return const StatusBadge(
-          text: 'OUT OF STOCK',
-          backgroundColor: AppColors.errorLight,
-          textColor: AppColors.errorText,
+      case 'In Stock':
+        return const StatusBadge._(
+          label: 'IN STOCK',
+          bgColor: AppColors.successLight,
+          textColor: AppColors.successText,
         );
       case 'Low Stock':
-        return const StatusBadge(
-          text: 'LOW STOCK',
-          backgroundColor: AppColors.warningLight,
+        return const StatusBadge._(
+          label: 'LOW STOCK',
+          bgColor: AppColors.warningLight,
           textColor: AppColors.warningText,
         );
+      case 'Out of Stock':
+        return const StatusBadge._(
+          label: 'OUT OF STOCK',
+          bgColor: AppColors.errorLight,
+          textColor: AppColors.errorText,
+        );
       default:
-        return const StatusBadge(
-          text: 'IN STOCK',
-          backgroundColor: AppColors.successLight,
-          textColor: AppColors.successText,
+        return StatusBadge._(
+          label: status.toUpperCase(),
+          bgColor: AppColors.surfaceAlt,
+          textColor: AppColors.textMuted,
         );
     }
   }
 
+  /// Order status badge.
   factory StatusBadge.order(OrderStatus status) {
     switch (status) {
       case OrderStatus.DELIVERED:
-        return const StatusBadge(
-          text: 'DELIVERED',
-          backgroundColor: AppColors.successLight,
+        return const StatusBadge._(
+          label: 'DELIVERED',
+          bgColor: AppColors.successLight,
           textColor: AppColors.successText,
         );
       case OrderStatus.PROCESSING:
-        return const StatusBadge(
-          text: 'PROCESSING',
-          backgroundColor: AppColors.infoLight,
+        return const StatusBadge._(
+          label: 'PROCESSING',
+          bgColor: AppColors.infoLight,
           textColor: AppColors.infoText,
         );
       case OrderStatus.CANCELLED:
-        return const StatusBadge(
-          text: 'CANCELLED',
-          backgroundColor: AppColors.errorLight,
-          textColor: AppColors.errorText,
-        );
       case OrderStatus.CANCELLED_BY_VENDOR:
-        return const StatusBadge(
-          text: 'CANCELLED BY VENDOR',
-          backgroundColor: AppColors.errorLight,
+        return StatusBadge._(
+          label: status == OrderStatus.CANCELLED ? 'CANCELLED' : 'VENDOR CANCELLED',
+          bgColor: AppColors.errorLight,
           textColor: AppColors.errorText,
-        );
-      case OrderStatus.ISSUED:
-        return const StatusBadge(
-          text: 'ISSUED',
-          backgroundColor: AppColors.warningLight,
-          textColor: AppColors.warningText,
         );
       case OrderStatus.SCHEDULED:
-        return const StatusBadge(
-          text: 'SCHEDULED',
-          backgroundColor: AppColors.successLight,
+        return const StatusBadge._(
+          label: 'SCHEDULED',
+          bgColor: AppColors.successLight,
           textColor: AppColors.successText,
         );
+      case OrderStatus.ISSUED:
+        return const StatusBadge._(
+          label: 'ISSUED',
+          bgColor: AppColors.infoLight,
+          textColor: AppColors.infoText,
+        );
+      case OrderStatus.PENDING:
       default:
-        return const StatusBadge(
-          text: 'PENDING',
-          backgroundColor: AppColors.warningLight,
+        return const StatusBadge._(
+          label: 'PENDING',
+          bgColor: AppColors.warningLight,
           textColor: AppColors.warningText,
         );
     }
@@ -90,34 +91,19 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: PremiumShadows.glow(textColor),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(100),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.w700,
-              color: textColor,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: textColor,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }

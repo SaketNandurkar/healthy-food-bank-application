@@ -2,46 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
-import '../../providers/cart_provider.dart';
-import 'browse_products_screen.dart';
-import 'cart_screen.dart';
-import 'customer_orders_screen.dart';
-import 'customer_profile_screen.dart';
+import '../../providers/admin_navigation_provider.dart';
+import 'admin_dashboard_screen.dart';
+import 'admin_users_screen.dart';
+import 'admin_vendor_codes_screen.dart';
+import 'admin_pickup_points_screen.dart';
+import 'admin_profile_screen.dart';
 
-class CustomerShell extends ConsumerStatefulWidget {
-  const CustomerShell({super.key});
+class AdminShell extends ConsumerWidget {
+  const AdminShell({super.key});
 
-  static final GlobalKey<_CustomerShellState> shellKey =
-      GlobalKey<_CustomerShellState>();
-
-  @override
-  ConsumerState<CustomerShell> createState() => _CustomerShellState();
-}
-
-class _CustomerShellState extends ConsumerState<CustomerShell> {
-  int _currentIndex = 0;
-
-  void switchToTab(int index) {
-    if (_currentIndex != index) {
-      HapticFeedback.lightImpact();
-      setState(() => _currentIndex = index);
-    }
-  }
-
-  final _screens = const [
-    BrowseProductsScreen(),
-    CartScreen(),
-    CustomerOrdersScreen(),
-    CustomerProfileScreen(),
+  static const _screens = [
+    AdminDashboardScreen(),
+    AdminUsersScreen(),
+    AdminVendorCodesScreen(),
+    AdminPickupPointsScreen(),
+    AdminProfileScreen(),
   ];
 
   @override
-  Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentIndex = ref.watch(adminNavigationProvider);
 
     return Scaffold(
       body: IndexedStack(
-        index: _currentIndex,
+        index: currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
@@ -59,29 +44,44 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'Home',
-                  index: 0,
+                  context,
+                  ref,
+                  Icons.dashboard_outlined,
+                  Icons.dashboard_rounded,
+                  'Dashboard',
+                  0,
                 ),
                 _buildNavItem(
-                  icon: Icons.shopping_cart_outlined,
-                  activeIcon: Icons.shopping_cart_rounded,
-                  label: 'Cart',
-                  index: 1,
-                  badgeCount: cart.itemCount > 0 ? cart.itemCount : null,
+                  context,
+                  ref,
+                  Icons.people_outline_rounded,
+                  Icons.people_rounded,
+                  'Users',
+                  1,
                 ),
                 _buildNavItem(
-                  icon: Icons.receipt_long_outlined,
-                  activeIcon: Icons.receipt_long_rounded,
-                  label: 'Orders',
-                  index: 2,
+                  context,
+                  ref,
+                  Icons.qr_code_outlined,
+                  Icons.qr_code_rounded,
+                  'Codes',
+                  2,
                 ),
                 _buildNavItem(
-                  icon: Icons.person_outline_rounded,
-                  activeIcon: Icons.person_rounded,
-                  label: 'Profile',
-                  index: 3,
+                  context,
+                  ref,
+                  Icons.location_on_outlined,
+                  Icons.location_on_rounded,
+                  'Pickups',
+                  3,
+                ),
+                _buildNavItem(
+                  context,
+                  ref,
+                  Icons.person_outline_rounded,
+                  Icons.person_rounded,
+                  'Profile',
+                  4,
                 ),
               ],
             ),
@@ -91,21 +91,24 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
     );
   }
 
-  Widget _buildNavItem({
-    required IconData icon,
-    required IconData activeIcon,
-    required String label,
-    required int index,
+  Widget _buildNavItem(
+    BuildContext context,
+    WidgetRef ref,
+    IconData icon,
+    IconData activeIcon,
+    String label,
+    int index, {
     int? badgeCount,
   }) {
-    final isSelected = _currentIndex == index;
+    final currentIndex = ref.watch(adminNavigationProvider);
+    final isSelected = currentIndex == index;
     final color = isSelected ? AppColors.primary : AppColors.textHint;
 
     return GestureDetector(
       onTap: () {
-        if (_currentIndex != index) {
+        if (currentIndex != index) {
           HapticFeedback.lightImpact();
-          setState(() => _currentIndex = index);
+          ref.read(adminNavigationProvider.notifier).state = index;
         }
       },
       behavior: HitTestBehavior.opaque,

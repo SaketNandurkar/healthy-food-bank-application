@@ -73,10 +73,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildCompactHeader(),
             Transform.translate(
-              offset: const Offset(0, -40),
-              child: _buildFormCard(authState),
+              offset: const Offset(0, -30),
+              child: _buildFormSection(authState),
             ),
           ],
         ),
@@ -84,194 +84,159 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
   }
 
-  Widget _buildHeader() {
+  // ---------------------------------------------------------------------------
+  // Compact green header — 180px, rounded bottom, icon + title + subtitle
+  // ---------------------------------------------------------------------------
+  Widget _buildCompactHeader() {
     return StaggeredListItem(
       index: 0,
       animation: _entranceCtrl,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.only(top: 80, bottom: 60),
+        height: 180,
         decoration: BoxDecoration(
           gradient: PremiumGradients.header(),
           borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.elliptical(300, 50),
-            bottomRight: Radius.elliptical(300, 50),
+            bottomLeft: Radius.circular(28),
+            bottomRight: Radius.circular(28),
           ),
         ),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            const DecorativeCircle(size: 140, opacity: 0.06, top: -40, right: -20),
-            const DecorativeCircle(size: 90, opacity: 0.04, bottom: -10, left: -20),
-            const DecorativeCircle(size: 50, opacity: 0.05, top: 20, left: 50),
-            SizedBox(
-              width: double.infinity,
-              child: Column(
-                children: [
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withOpacity(0.25), width: 2),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.eco, size: 36, color: Colors.white),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // App icon circle
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1.5,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Healthy Food Bank',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Sign in to continue',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
+                child: const Icon(Icons.eco, size: 26, color: Colors.white),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              const Text(
+                'Healthy Food Bank',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Sign in to continue',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.white.withOpacity(0.85),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildFormCard(AuthState authState) {
+  // ---------------------------------------------------------------------------
+  // Form section — error banner + white form card + register link + demo card
+  // ---------------------------------------------------------------------------
+  Widget _buildFormSection(AuthState authState) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          // Error message with animation
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-            child: authState.error != null
-                ? AnimatedOpacity(
-                    opacity: 1.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: AppColors.errorLight,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.error.withOpacity(0.2)),
-                        boxShadow: PremiumShadows.glow(AppColors.error),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.error_outline, color: AppColors.error, size: 18),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              authState.error!,
-                              style: const TextStyle(color: AppColors.errorText, fontSize: 13, fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
+          // Error banner above form card
+          _buildErrorBanner(authState),
 
           // Form card
           StaggeredListItem(
             index: 1,
             animation: _entranceCtrl,
             child: Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: PremiumShadows.elevated(),
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
               ),
               child: Form(
                 key: _formKey,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFormField(
+                    // Username field
+                    _buildTextField(
                       controller: _usernameController,
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        hintText: 'Enter your username',
-                        prefixIcon: Container(
-                          margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.08),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.person_outline, color: AppColors.primary.withOpacity(0.7), size: 20),
-                        ),
-                      ),
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Username is required'
-                          : v.trim().length < 3
-                              ? 'Min 3 characters'
-                              : null,
+                      label: 'Username',
+                      hint: 'Enter your username',
+                      icon: Icons.person_outlined,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Username is required';
+                        }
+                        if (v.trim().length < 3) return 'Min 3 characters';
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
+
+                    // Password field
+                    _buildTextField(
                       controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Enter your password',
-                        prefixIcon: Container(
-                          margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.08),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.lock_outline, color: AppColors.primary.withOpacity(0.7), size: 20),
+                      label: 'Password',
+                      hint: 'Enter your password',
+                      icon: Icons.lock_outlined,
+                      obscure: _obscurePassword,
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                          color: AppColors.textHint,
+                          size: 20,
                         ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                            color: AppColors.textHint,
-                            size: 20,
-                          ),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                        ),
+                        onPressed: () =>
+                            setState(() => _obscurePassword = !_obscurePassword),
                       ),
-                      validator: (v) => v == null || v.isEmpty
-                          ? 'Password is required'
-                          : v.length < 6
-                              ? 'Min 6 characters'
-                              : null,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Password is required';
+                        if (v.length < 6) return 'Min 6 characters';
+                        return null;
+                      },
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
+
+                    // Forgot password link — right aligned
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 2),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Coming soon!')),
@@ -279,50 +244,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         },
                         child: const Text(
                           'Forgot Password?',
-                          style: TextStyle(fontSize: 13, color: AppColors.primary, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    // Sign In button with gradient
-                    PressableScale(
-                      onTap: authState.isLoading ? null : _handleLogin,
-                      enableHaptic: false,
-                      child: Container(
-                        width: double.infinity,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          gradient: authState.isLoading ? null : PremiumGradients.button(),
-                          color: authState.isLoading ? AppColors.textHint : null,
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: authState.isLoading
-                              ? null
-                              : [
-                                  BoxShadow(
-                                    color: AppColors.primary.withOpacity(0.4),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                        ),
-                        child: Center(
-                          child: authState.isLoading
-                              ? const SizedBox(
-                                  width: 24, height: 24,
-                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                                )
-                              : const Text(
-                                  'Sign In',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
-                        ),
-                      ),
-                    ),
+                    const SizedBox(height: 20),
+
+                    // Sign In button — flat green, NO gradient shadow
+                    _buildSignInButton(authState),
                   ],
                 ),
               ),
@@ -340,13 +273,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               children: [
                 const Text(
                   "Don't have an account? ",
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+                  style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 14,
+                  ),
                 ),
                 GestureDetector(
                   onTap: () => Navigator.of(context).pushNamed('/register'),
-                  child: Row(
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
+                      Text(
                         'Register here',
                         style: TextStyle(
                           color: AppColors.primary,
@@ -354,8 +291,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           fontSize: 14,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.arrow_forward, size: 14, color: AppColors.primary),
+                      SizedBox(width: 3),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: 14,
+                        color: AppColors.primary,
+                      ),
                     ],
                   ),
                 ),
@@ -365,25 +306,195 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
           const SizedBox(height: 24),
 
-          // Demo accounts
+          // Demo accounts card
           StaggeredListItem(
             index: 3,
             animation: _entranceCtrl,
             child: _buildDemoAccountsCard(),
           ),
+
+          const SizedBox(height: 32),
         ],
       ),
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Error banner — red background, icon + message
+  // ---------------------------------------------------------------------------
+  Widget _buildErrorBanner(AuthState authState) {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      child: authState.error != null
+          ? AnimatedOpacity(
+              opacity: 1.0,
+              duration: const Duration(milliseconds: 300),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.errorLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.error.withOpacity(0.15),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.error_outline,
+                        color: AppColors.error,
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        authState.error!,
+                        style: const TextStyle(
+                          color: AppColors.errorText,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reusable text field — surfaceAlt fill, 12px radius, icon prefix circle
+  // ---------------------------------------------------------------------------
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    bool obscure = false,
+    Widget? suffixIcon,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      validator: validator,
+      style: const TextStyle(
+        fontSize: 14,
+        color: AppColors.textPrimary,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        filled: true,
+        fillColor: AppColors.surfaceAlt,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        prefixIcon: Container(
+          margin: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: AppColors.primary.withOpacity(0.7),
+            size: 18,
+          ),
+        ),
+        suffixIcon: suffixIcon,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sign In button — flat green (#0C831F), 12px radius, NO gradient shadow
+  // ---------------------------------------------------------------------------
+  Widget _buildSignInButton(AuthState authState) {
+    return PressableScale(
+      onTap: authState.isLoading ? null : _handleLogin,
+      enableHaptic: false,
+      child: Container(
+        width: double.infinity,
+        height: 50,
+        decoration: BoxDecoration(
+          color: authState.isLoading
+              ? AppColors.textHint
+              : AppColors.primary,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: authState.isLoading
+              ? const SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+              : const Text(
+                  'Sign In',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Demo accounts card — white, left green border 3px, info icon
+  // ---------------------------------------------------------------------------
   Widget _buildDemoAccountsCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border(left: BorderSide(color: AppColors.primary, width: 4)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: const Border(
+          left: BorderSide(color: AppColors.primary, width: 3),
+        ),
         boxShadow: PremiumShadows.subtle(),
       ),
       child: Column(
@@ -392,12 +503,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(5),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
+                  color: AppColors.primarySubtle,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.info_outline, size: 16, color: AppColors.primary),
+                child: const Icon(
+                  Icons.info_outline,
+                  size: 15,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 8),
               const Text(
@@ -410,7 +525,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           _buildDemoRow('Vendor', 'vendor / password'),
           const SizedBox(height: 6),
           _buildDemoRow('Customer', 'customer / password'),
@@ -425,7 +540,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primarySubtle,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Text(

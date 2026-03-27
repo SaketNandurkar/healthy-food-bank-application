@@ -12,6 +12,10 @@ import 'screens/customer/my_pickup_points_screen.dart';
 import 'screens/customer/notifications_screen.dart';
 import 'screens/customer/settings_screen.dart';
 import 'screens/customer/help_faq_screen.dart';
+import 'screens/vendor/vendor_shell.dart';
+import 'screens/vendor/vendor_add_product_screen.dart';
+import 'screens/vendor/vendor_pickup_points_screen.dart';
+import 'screens/admin/admin_shell.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,16 +69,16 @@ class HealthyFoodBankApp extends StatelessWidget {
             page = const HelpFaqScreen();
             break;
           case '/vendor':
-            page = const _PlaceholderScreen(
-              title: 'Vendor Dashboard',
-              subtitle: 'Coming in Phase 2',
-            );
+            page = VendorShell(key: VendorShell.shellKey);
+            break;
+          case '/vendor/pickup-points':
+            page = const VendorPickupPointsScreen();
+            break;
+          case '/vendor/add-product':
+            page = const VendorAddProductScreen();
             break;
           case '/admin':
-            page = const _PlaceholderScreen(
-              title: 'Admin Dashboard',
-              subtitle: 'Coming in Phase 3',
-            );
+            page = const AdminShell();
             break;
           default:
             page = const SplashScreen();

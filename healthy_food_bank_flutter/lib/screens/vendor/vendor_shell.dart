@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
-import '../../providers/cart_provider.dart';
-import 'browse_products_screen.dart';
-import 'cart_screen.dart';
-import 'customer_orders_screen.dart';
-import 'customer_profile_screen.dart';
+import '../../providers/vendor_order_provider.dart';
+import 'vendor_dashboard_screen.dart';
+import 'vendor_products_screen.dart';
+import 'vendor_orders_screen.dart';
+import 'vendor_profile_screen.dart';
 
-class CustomerShell extends ConsumerStatefulWidget {
-  const CustomerShell({super.key});
+class VendorShell extends ConsumerStatefulWidget {
+  const VendorShell({super.key});
 
-  static final GlobalKey<_CustomerShellState> shellKey =
-      GlobalKey<_CustomerShellState>();
+  static final GlobalKey<_VendorShellState> shellKey =
+      GlobalKey<_VendorShellState>();
 
   @override
-  ConsumerState<CustomerShell> createState() => _CustomerShellState();
+  ConsumerState<VendorShell> createState() => _VendorShellState();
 }
 
-class _CustomerShellState extends ConsumerState<CustomerShell> {
+class _VendorShellState extends ConsumerState<VendorShell> {
   int _currentIndex = 0;
 
   void switchToTab(int index) {
@@ -29,15 +29,15 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
   }
 
   final _screens = const [
-    BrowseProductsScreen(),
-    CartScreen(),
-    CustomerOrdersScreen(),
-    CustomerProfileScreen(),
+    VendorDashboardScreen(),
+    VendorProductsScreen(),
+    VendorOrdersScreen(),
+    VendorProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
+    final orderState = ref.watch(vendorOrdersProvider);
 
     return Scaffold(
       body: IndexedStack(
@@ -59,23 +59,25 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home_rounded,
-                  label: 'Home',
+                  icon: Icons.dashboard_outlined,
+                  activeIcon: Icons.dashboard_rounded,
+                  label: 'Dashboard',
                   index: 0,
                 ),
                 _buildNavItem(
-                  icon: Icons.shopping_cart_outlined,
-                  activeIcon: Icons.shopping_cart_rounded,
-                  label: 'Cart',
+                  icon: Icons.inventory_2_outlined,
+                  activeIcon: Icons.inventory_2_rounded,
+                  label: 'Products',
                   index: 1,
-                  badgeCount: cart.itemCount > 0 ? cart.itemCount : null,
                 ),
                 _buildNavItem(
                   icon: Icons.receipt_long_outlined,
                   activeIcon: Icons.receipt_long_rounded,
                   label: 'Orders',
                   index: 2,
+                  badgeCount: orderState.newOrderCount > 0
+                      ? orderState.newOrderCount
+                      : null,
                 ),
                 _buildNavItem(
                   icon: Icons.person_outline_rounded,
@@ -114,7 +116,6 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Icon with optional badge
             SizedBox(
               width: 28,
               height: 28,
@@ -162,7 +163,6 @@ class _CustomerShellState extends ConsumerState<CustomerShell> {
               ),
             ),
             const SizedBox(height: 3),
-            // Label
             Text(
               label,
               style: TextStyle(

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../config/theme.dart';
 import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
@@ -37,38 +36,24 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
       body: Column(
         children: [
           PremiumHeader(
-            child: Row(
-              children: [
-                PressableScale(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    ),
-                    child: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Text(
-                    'Help & FAQ',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
-                  ),
-                ),
-              ],
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  _buildBackButton(),
+                  const SizedBox(width: 12),
+                  const Text('Help & FAQ',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                ],
+              ),
             ),
           ),
-
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // FAQ sections
                   StaggeredListItem(
                     index: 0,
                     animation: _entranceCtrl,
@@ -100,7 +85,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
                               ),
                             ],
                           ),
-                          const Divider(height: 1, indent: 56),
+                          _buildDivider(),
                           _buildFaqSection(
                             'Delivery Information',
                             Icons.local_shipping_outlined,
@@ -120,7 +105,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
                               ),
                             ],
                           ),
-                          const Divider(height: 1, indent: 56),
+                          _buildDivider(),
                           _buildFaqSection(
                             'Returns & Cancellations',
                             Icons.replay_outlined,
@@ -140,7 +125,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
                               ),
                             ],
                           ),
-                          const Divider(height: 1, indent: 56),
+                          _buildDivider(),
                           _buildFaqSection(
                             'Account & Profile',
                             Icons.person_outline,
@@ -160,7 +145,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
                               ),
                             ],
                           ),
-                          const Divider(height: 1, indent: 56),
+                          _buildDivider(),
                           _buildFaqSection(
                             'Pickup Points',
                             Icons.location_on_outlined,
@@ -184,10 +169,7 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 24),
-
-                  // Contact Support
                   StaggeredListItem(
                     index: 2,
                     animation: _entranceCtrl,
@@ -200,31 +182,15 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
                       decoration: premiumCardDecoration(),
                       child: Column(
                         children: [
-                          _buildContactTile(
-                            Icons.email_outlined,
-                            AppColors.info,
-                            'Email',
-                            'support@healthyfoodbank.com',
-                          ),
-                          const Padding(padding: EdgeInsets.only(left: 64), child: Divider(height: 1)),
-                          _buildContactTile(
-                            Icons.phone_outlined,
-                            AppColors.success,
-                            'Phone',
-                            '+91 1800-123-4567',
-                          ),
-                          const Padding(padding: EdgeInsets.only(left: 64), child: Divider(height: 1)),
-                          _buildContactTile(
-                            Icons.schedule_outlined,
-                            AppColors.warning,
-                            'Working Hours',
-                            'Mon - Sat, 9:00 AM - 6:00 PM',
-                          ),
+                          _buildContactTile(Icons.email_outlined, AppColors.info, 'Email', 'support@healthyfoodbank.com'),
+                          _buildDivider(),
+                          _buildContactTile(Icons.phone_outlined, AppColors.success, 'Phone', '+91 1800-123-4567'),
+                          _buildDivider(),
+                          _buildContactTile(Icons.schedule_outlined, AppColors.warning, 'Working Hours', 'Mon - Sat, 9:00 AM - 6:00 PM'),
                         ],
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
                 ],
               ),
@@ -235,18 +201,29 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
     );
   }
 
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+        child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textHint,
-          letterSpacing: 1.2,
-        ),
-      ),
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(title.toUpperCase(),
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textHint, letterSpacing: 0.8)),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Padding(
+      padding: EdgeInsets.only(left: 56),
+      child: Divider(height: 1, color: AppColors.divider),
     );
   }
 
@@ -262,14 +239,14 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.08),
-            shape: BoxShape.circle,
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: color, size: 20),
+          child: Icon(icon, color: color, size: 18),
         ),
-        title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        childrenPadding: const EdgeInsets.only(left: 64, right: 16, bottom: 16),
+        title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        childrenPadding: const EdgeInsets.only(left: 56, right: 14, bottom: 14),
         expandedCrossAxisAlignment: CrossAxisAlignment.start,
         children: items.map((item) => _buildFaqItem(item.$1, item.$2)).toList(),
       ),
@@ -282,15 +259,9 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            question,
-            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-          ),
+          Text(question, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
           const SizedBox(height: 4),
-          Text(
-            answer,
-            style: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.5),
-          ),
+          Text(answer, style: const TextStyle(fontSize: 13, color: AppColors.textMuted, height: 1.5)),
         ],
       ),
     );
@@ -298,25 +269,25 @@ class _HelpFaqScreenState extends State<HelpFaqScreen>
 
   Widget _buildContactTile(IconData icon, Color color, String title, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
-              shape: BoxShape.circle,
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
                 const SizedBox(height: 2),
-                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
               ],
             ),
           ),

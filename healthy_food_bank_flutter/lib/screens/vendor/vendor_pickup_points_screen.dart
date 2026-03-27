@@ -4,20 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
 import '../../models/pickup_point.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/pickup_point_provider.dart';
+import '../../providers/vendor_pickup_point_provider.dart';
 import '../../services/pickup_point_service.dart';
 import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
 import '../../widgets/empty_state.dart';
 
-class MyPickupPointsScreen extends ConsumerStatefulWidget {
-  const MyPickupPointsScreen({super.key});
+class VendorPickupPointsScreen extends ConsumerStatefulWidget {
+  const VendorPickupPointsScreen({super.key});
 
   @override
-  ConsumerState<MyPickupPointsScreen> createState() => _MyPickupPointsScreenState();
+  ConsumerState<VendorPickupPointsScreen> createState() => _VendorPickupPointsScreenState();
 }
 
-class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
+class _VendorPickupPointsScreenState extends ConsumerState<VendorPickupPointsScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _entranceCtrl;
 
@@ -33,8 +33,8 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
 
   void _loadData() {
     final user = ref.read(authStateProvider).user;
-    if (user?.id != null) {
-      ref.read(customerPickupPointsProvider.notifier).loadPickupPoints(user!.id!);
+    if (user?.vendorId != null) {
+      ref.read(vendorPickupPointsProvider.notifier).loadPickupPoints(user!.vendorId!);
     }
   }
 
@@ -46,7 +46,7 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(customerPickupPointsProvider);
+    final state = ref.watch(vendorPickupPointsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -59,8 +59,21 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
                 children: [
                   _buildBackButton(),
                   const SizedBox(width: 12),
-                  const Text('My Pickup Points',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                  const Expanded(
+                    child: Text('My Pickup Points',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      '${state.activeCount} Active',
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -72,7 +85,7 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
                     ? EmptyState(
                         icon: Icons.location_on_outlined,
                         title: 'No pickup points yet',
-                        subtitle: 'Add a pickup point to get started',
+                        subtitle: 'Add pickup points where you deliver',
                         actionLabel: 'Add Pickup Point',
                         onAction: () => _showAddSheet(context),
                       )
@@ -92,11 +105,10 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
                               );
                             }
                             final point = state.pickupPoints[index];
-                            final isActive = state.activePickupPoint?.id == point.id;
                             return StaggeredListItem(
                               index: index,
                               animation: _entranceCtrl,
-                              child: _buildPointCard(point, isActive),
+                              child: _buildPointCard(point),
                             );
                           },
                         ),
@@ -131,12 +143,16 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
     );
   }
 
-  Widget _buildPointCard(PickupPoint point, bool isActive) {
+  Widget _buildPointCard(PickupPoint point) {
+    final isActive = point.active;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isActive ? AppColors.primary.withOpacity(0.3) : AppColors.borderLight),
+        border: Border.all(
+          color: isActive ? AppColors.primary.withOpacity(0.3) : AppColors.borderLight,
+        ),
         boxShadow: PremiumShadows.card(),
       ),
       child: Column(
@@ -189,18 +205,22 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (isActive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.successLight,
-                      borderRadius: BorderRadius.circular(100),
-                    ),
-                    child: const Text(
-                      'ACTIVE',
-                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.successText, letterSpacing: 0.5),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isActive ? AppColors.successLight : AppColors.errorLight,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    isActive ? 'ACTIVE' : 'INACTIVE',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: isActive ? AppColors.successText : AppColors.error,
+                      letterSpacing: 0.5,
                     ),
                   ),
+                ),
               ],
             ),
           ),
@@ -210,20 +230,25 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                if (!isActive)
-                  GestureDetector(
-                    onTap: () => _setActive(point),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.primarySubtle,
-                        borderRadius: BorderRadius.circular(8),
+                GestureDetector(
+                  onTap: () => _toggleActive(point),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isActive ? AppColors.warningLight : AppColors.primarySubtle,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      isActive ? 'Deactivate' : 'Activate',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: isActive ? AppColors.warning : AppColors.primary,
                       ),
-                      child: const Text('Set Active',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
                     ),
                   ),
-                if (!isActive) const SizedBox(width: 8),
+                ),
+                const SizedBox(width: 8),
                 GestureDetector(
                   onTap: () => _confirmDelete(point),
                   child: Container(
@@ -267,16 +292,18 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
     );
   }
 
-  Future<void> _setActive(PickupPoint point) async {
+  Future<void> _toggleActive(PickupPoint point) async {
     HapticFeedback.mediumImpact();
     final user = ref.read(authStateProvider).user;
-    if (user?.id == null || point.id == null) return;
+    if (user?.vendorId == null || point.id == null) return;
 
-    final success = await ref.read(customerPickupPointsProvider.notifier).setActive(user!.id!, point.id!);
+    final success = await ref.read(vendorPickupPointsProvider.notifier)
+        .togglePickupPoint(user!.vendorId!, point.id!);
+
     if (mounted && success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${point.name} set as active'),
+          content: Text('${point.name} ${point.active ? "deactivated" : "activated"}'),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ),
@@ -291,7 +318,7 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Remove Pickup Point', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
-        content: Text('Remove "${point.name}" from your pickup points?',
+        content: Text('Remove "${point.name}" from your service area?',
             style: const TextStyle(color: AppColors.textSecondary, fontSize: 14)),
         actions: [
           TextButton(
@@ -302,8 +329,9 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
             onPressed: () async {
               Navigator.pop(ctx);
               final user = ref.read(authStateProvider).user;
-              if (user?.id != null && point.id != null) {
-                await ref.read(customerPickupPointsProvider.notifier).removePickupPoint(user!.id!, point.id!);
+              if (user?.vendorId != null && point.id != null) {
+                await ref.read(vendorPickupPointsProvider.notifier)
+                    .removePickupPoint(user!.vendorId!, point.id!);
               }
             },
             child: const Text('Remove', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),
@@ -315,7 +343,7 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
 
   void _showAddSheet(BuildContext context) {
     HapticFeedback.mediumImpact();
-    final existingIds = ref.read(customerPickupPointsProvider)
+    final existingIds = ref.read(vendorPickupPointsProvider)
         .pickupPoints.map((p) => p.id).whereType<int>().toSet();
     showModalBottomSheet(
       context: context,
@@ -325,9 +353,9 @@ class _MyPickupPointsScreenState extends ConsumerState<MyPickupPointsScreen>
         existingPointIds: existingIds,
         onAdd: (pickupPointId) async {
           final user = ref.read(authStateProvider).user;
-          if (user?.id != null) {
-            final success = await ref.read(customerPickupPointsProvider.notifier)
-                .addPickupPoint(user!.id!, {'pickupPointId': pickupPointId});
+          if (user?.vendorId != null) {
+            final success = await ref.read(vendorPickupPointsProvider.notifier)
+                .addPickupPoint(user!.vendorId!, {'pickupPointId': pickupPointId});
             if (mounted && success) {
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -404,7 +432,7 @@ class _AddPickupPointSheetState extends State<_AddPickupPointSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Add Pickup Point', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-                    Text('Select from available locations', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                    Text('Select delivery location', style: TextStyle(fontSize: 12, color: AppColors.textMuted)),
                   ],
                 ),
               ],

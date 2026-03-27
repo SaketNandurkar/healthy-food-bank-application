@@ -39,41 +39,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       body: Column(
         children: [
           PremiumHeader(
-            child: Row(
-              children: [
-                PressableScale(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    ),
-                    child: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                const Text(
-                  'Settings',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
-                ),
-              ],
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  _buildBackButton(),
+                  const SizedBox(width: 12),
+                  const Text('Settings',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                ],
+              ),
             ),
           ),
-
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // App Info
-                  StaggeredListItem(
-                    index: 0,
-                    animation: _entranceCtrl,
-                    child: _buildSectionTitle('App Info'),
-                  ),
+                  StaggeredListItem(index: 0, animation: _entranceCtrl, child: _buildSectionTitle('App Info')),
                   StaggeredListItem(
                     index: 1,
                     animation: _entranceCtrl,
@@ -88,14 +72,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                             trailing: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.08),
-                                borderRadius: BorderRadius.circular(8),
+                                color: AppColors.primarySubtle,
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text('1.0.0',
                                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
                             ),
                           ),
-                          const Padding(padding: EdgeInsets.only(left: 64), child: Divider(height: 1)),
+                          _buildDivider(),
                           PressableScale(
                             onTap: () => _showAbout(context),
                             child: _buildSettingsTile(
@@ -109,15 +93,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Appearance
-                  StaggeredListItem(
-                    index: 2,
-                    animation: _entranceCtrl,
-                    child: _buildSectionTitle('Appearance'),
-                  ),
+                  const SizedBox(height: 20),
+                  StaggeredListItem(index: 2, animation: _entranceCtrl, child: _buildSectionTitle('Appearance')),
                   StaggeredListItem(
                     index: 3,
                     animation: _entranceCtrl,
@@ -130,13 +107,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                         trailing: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.warning.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(8),
+                            color: AppColors.warningLight,
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.light_mode, size: 14, color: AppColors.warning),
+                              Icon(Icons.light_mode, size: 13, color: AppColors.warningText),
                               SizedBox(width: 4),
                               Text('Light', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.warningText)),
                             ],
@@ -145,15 +122,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       ),
                     ),
                   ),
-
-                  const SizedBox(height: 24),
-
-                  // Account
-                  StaggeredListItem(
-                    index: 4,
-                    animation: _entranceCtrl,
-                    child: _buildSectionTitle('Account'),
-                  ),
+                  const SizedBox(height: 20),
+                  StaggeredListItem(index: 4, animation: _entranceCtrl, child: _buildSectionTitle('Account')),
                   StaggeredListItem(
                     index: 5,
                     animation: _entranceCtrl,
@@ -170,7 +140,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                               trailing: _buildChevron(),
                             ),
                           ),
-                          const Padding(padding: EdgeInsets.only(left: 64), child: Divider(height: 1)),
+                          _buildDivider(),
                           PressableScale(
                             onTap: () => _showClearCartDialog(context),
                             child: _buildSettingsTile(
@@ -184,9 +154,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
-
                   StaggeredListItem(
                     index: 6,
                     animation: _entranceCtrl,
@@ -194,32 +162,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
                       child: Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withOpacity(0.06),
+                              color: AppColors.primarySubtle,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.eco, color: AppColors.primary, size: 28),
+                            child: const Icon(Icons.eco, color: AppColors.primary, size: 24),
                           ),
                           const SizedBox(height: 8),
-                          Text(
-                            'Healthy Food Bank',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textHint.withOpacity(0.7),
-                            ),
-                          ),
+                          const Text('Healthy Food Bank',
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textHint)),
                           const SizedBox(height: 2),
-                          Text(
-                            'Fresh & Healthy, Delivered to You',
-                            style: TextStyle(fontSize: 12, color: AppColors.textHint.withOpacity(0.5)),
-                          ),
+                          const Text('Fresh & Healthy, Delivered to You',
+                              style: TextStyle(fontSize: 11, color: AppColors.textHint)),
                         ],
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 32),
                 ],
               ),
@@ -230,18 +189,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
   }
 
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+        child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 10),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textHint,
-          letterSpacing: 1.2,
-        ),
-      ),
+      padding: const EdgeInsets.only(left: 4, bottom: 8),
+      child: Text(title.toUpperCase(),
+          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textHint, letterSpacing: 0.8)),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Padding(
+      padding: EdgeInsets.only(left: 56),
+      child: Divider(height: 1, color: AppColors.divider),
     );
   }
 
@@ -252,20 +222,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     required Widget trailing,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
-              shape: BoxShape.circle,
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: color, size: 18),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+            child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
           ),
           trailing,
         ],
@@ -277,7 +247,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: const BoxDecoration(color: AppColors.surfaceAlt, shape: BoxShape.circle),
-      child: const Icon(Icons.chevron_right, color: AppColors.textHint, size: 18),
+      child: const Icon(Icons.chevron_right, color: AppColors.textHint, size: 16),
     );
   }
 
@@ -288,12 +258,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       applicationName: 'Healthy Food Bank',
       applicationVersion: '1.0.0',
       applicationIcon: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.1),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(Icons.eco, color: AppColors.primary, size: 32),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(color: AppColors.primarySubtle, shape: BoxShape.circle),
+        child: const Icon(Icons.eco, color: AppColors.primary, size: 28),
       ),
       children: [
         const Text(
@@ -310,9 +277,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Clear Cart', style: TextStyle(fontWeight: FontWeight.w700)),
-        content: const Text('Remove all items from your shopping cart?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Clear Cart', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17)),
+        content: const Text('Remove all items from your shopping cart?',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -323,11 +291,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               ref.read(cartProvider.notifier).clearCart();
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Cart cleared'),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
-                ),
+                const SnackBar(content: Text('Cart cleared'), backgroundColor: AppColors.success, behavior: SnackBarBehavior.floating),
               );
             },
             child: const Text('Clear', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w600)),

@@ -128,14 +128,26 @@ class ApiClient {
   }
 
   String _parseError(dynamic error) {
-    if (error.toString().contains('SocketException') ||
-        error.toString().contains('Connection refused')) {
-      return 'Cannot connect to server. Please check your connection.';
+    final msg = error.toString();
+    if (msg.contains('SocketException') ||
+        msg.contains('Connection refused') ||
+        msg.contains('Connection reset') ||
+        msg.contains('ClientException') ||
+        msg.contains('NetworkException') ||
+        msg.contains('No route to host') ||
+        msg.contains('Network is unreachable') ||
+        msg.contains('Connection closed') ||
+        msg.contains('HandshakeException') ||
+        msg.contains('OS Error')) {
+      return 'Cannot connect to server. Please check if the backend is running and the API URL is correct.';
     }
-    if (error.toString().contains('TimeoutException')) {
+    if (msg.contains('TimeoutException')) {
       return 'Request timed out. Please try again.';
     }
-    return 'Something went wrong. Please try again.';
+    if (msg.contains('FormatException')) {
+      return 'Invalid response from server.';
+    }
+    return 'Connection failed: ${msg.length > 120 ? '${msg.substring(0, 120)}...' : msg}';
   }
 }
 

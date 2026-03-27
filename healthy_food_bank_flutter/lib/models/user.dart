@@ -34,8 +34,8 @@ class User {
       lastName: json['lastName'] ?? '',
       email: json['email'],
       phoneNumber: json['phoneNumber']?.toString(),
-      role: _parseRole(json['roles'] ?? json['role'] ?? 'CUSTOMER'),
-      vendorId: json['vendorId'],
+      role: _parseRole(json['roles']?.toString() ?? json['role']?.toString() ?? 'CUSTOMER'),
+      vendorId: json['vendorId']?.toString(),
       userName: json['userName'] ?? json['username'] ?? '',
       active: json['active'],
       pickupPointId: json['pickupPointId'],
@@ -64,7 +64,9 @@ class User {
   bool get isAdmin => role == UserRole.ADMIN;
 
   static UserRole _parseRole(String role) {
-    switch (role.toUpperCase()) {
+    // Remove ROLE_ prefix if present (Spring Security format)
+    final cleanRole = role.toUpperCase().replaceAll('ROLE_', '');
+    switch (cleanRole) {
       case 'VENDOR':
         return UserRole.VENDOR;
       case 'ADMIN':

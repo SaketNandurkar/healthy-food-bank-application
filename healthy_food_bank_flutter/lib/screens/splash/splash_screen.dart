@@ -94,58 +94,54 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         decoration: BoxDecoration(gradient: PremiumGradients.header()),
         child: Stack(
           children: [
-            // Decorative circles
             const DecorativeCircle(size: 200, opacity: 0.05, top: -60, right: -40),
             const DecorativeCircle(size: 150, opacity: 0.04, bottom: 80, left: -30),
             const DecorativeCircle(size: 80, opacity: 0.06, top: 120, left: 40),
-            const DecorativeCircle(size: 60, opacity: 0.05, bottom: 200, right: 30),
-            // Content
-            AnimatedBuilder(
-              animation: _mainCtrl,
-              builder: (context, child) {
-                return Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Spacer(),
-                    // Logo with pulse glow
-                    FadeTransition(
-                      opacity: _fadeAnim,
-                      child: ScaleTransition(
-                        scale: _scaleAnim,
-                        child: _buildLogo(),
-                      ),
-                    ),
-                    const SizedBox(height: 28),
-                    FadeTransition(
-                      opacity: _fadeAnim,
-                      child: const Text(
-                        'Healthy Food Bank',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: -0.8,
+            Center(
+              child: AnimatedBuilder(
+                animation: _mainCtrl,
+                builder: (context, child) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FadeTransition(
+                        opacity: _fadeAnim,
+                        child: ScaleTransition(
+                          scale: _scaleAnim,
+                          child: _buildLogo(),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    FadeTransition(
-                      opacity: _subtitleFade,
-                      child: Text(
-                        'Fresh & Healthy, Delivered to You',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.white.withOpacity(0.8),
-                          letterSpacing: 0.2,
+                      const SizedBox(height: 24),
+                      FadeTransition(
+                        opacity: _fadeAnim,
+                        child: const Text(
+                          'Healthy Food Bank',
+                          style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.5,
+                          ),
                         ),
                       ),
-                    ),
-                    const Spacer(),
-                    _buildLoadingDots(),
-                    const SizedBox(height: 48),
-                  ],
-                );
-              },
+                      const SizedBox(height: 6),
+                      FadeTransition(
+                        opacity: _subtitleFade,
+                        child: Text(
+                          'Fresh & Healthy, Delivered to You',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.8),
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildLoadingIndicator(),
+                    ],
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -157,19 +153,19 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     return AnimatedBuilder(
       animation: _pulseCtrl,
       builder: (context, child) {
-        final glowOpacity = Tween<double>(begin: 0.1, end: 0.3)
+        final glowOpacity = Tween<double>(begin: 0.08, end: 0.2)
             .chain(CurveTween(curve: Curves.easeInOut))
             .evaluate(_pulseCtrl);
         return Container(
-          width: 120,
-          height: 120,
+          width: 100,
+          height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
                 color: Colors.white.withOpacity(glowOpacity),
-                blurRadius: 40,
-                spreadRadius: 10,
+                blurRadius: 30,
+                spreadRadius: 8,
               ),
             ],
           ),
@@ -179,46 +175,27 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               shape: BoxShape.circle,
               border: Border.all(
                 color: Colors.white.withOpacity(0.25),
-                width: 2.5,
+                width: 2,
               ),
             ),
-            child: const Icon(
-              Icons.eco,
-              size: 52,
-              color: Colors.white,
-            ),
+            child: const Icon(Icons.eco, size: 44, color: Colors.white),
           ),
         );
       },
     );
   }
 
-  Widget _buildLoadingDots() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (index) {
-        return AnimatedBuilder(
-          animation: _pulseCtrl,
-          builder: (context, child) {
-            final delay = index * 0.25;
-            final t = ((_pulseCtrl.value + delay) % 1.0);
-            final opacity = 0.3 + 0.7 * (t < 0.5 ? t * 2 : 2 - t * 2);
-            final translateY = -4.0 * (t < 0.5 ? t * 2 : 2 - t * 2);
-            return Transform.translate(
-              offset: Offset(0, translateY),
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(opacity),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            );
-          },
-        );
-      }),
+  Widget _buildLoadingIndicator() {
+    return FadeTransition(
+      opacity: _subtitleFade,
+      child: SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(
+          strokeWidth: 2.5,
+          valueColor: AlwaysStoppedAnimation(Colors.white.withOpacity(0.7)),
+        ),
+      ),
     );
   }
 }

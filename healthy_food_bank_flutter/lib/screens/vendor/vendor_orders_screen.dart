@@ -4,22 +4,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
 import '../../models/order.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/order_provider.dart';
+import '../../providers/vendor_order_provider.dart';
 import '../../utils/helpers.dart';
 import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/empty_state.dart';
 
-class CustomerOrdersScreen extends ConsumerStatefulWidget {
-  const CustomerOrdersScreen({super.key});
+class VendorOrdersScreen extends ConsumerStatefulWidget {
+  const VendorOrdersScreen({super.key});
 
   @override
-  ConsumerState<CustomerOrdersScreen> createState() =>
-      _CustomerOrdersScreenState();
+  ConsumerState<VendorOrdersScreen> createState() =>
+      _VendorOrdersScreenState();
 }
 
-class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
+class _VendorOrdersScreenState extends ConsumerState<VendorOrdersScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late AnimationController _entranceCtrl;
@@ -27,7 +27,7 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _entranceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -46,8 +46,8 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
 
   void _loadOrders() {
     final user = ref.read(authStateProvider).user;
-    if (user?.id != null) {
-      ref.read(customerOrdersProvider.notifier).loadOrders(user!.id!);
+    if (user?.vendorId != null) {
+      ref.read(vendorOrdersProvider.notifier).loadAllOrders(user!.vendorId!);
     }
   }
 
@@ -60,7 +60,7 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
 
   @override
   Widget build(BuildContext context) {
-    final orderState = ref.watch(customerOrdersProvider);
+    final orderState = ref.watch(vendorOrdersProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -87,7 +87,7 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'My Orders',
+                    'Orders',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w800,
@@ -132,12 +132,9 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
               splashFactory: NoSplash.splashFactory,
               overlayColor: WidgetStateProperty.all(Colors.transparent),
               tabs: [
-                Tab(
-                  text: 'Active (${orderState.activeOrders.length})',
-                ),
-                Tab(
-                  text: 'History (${orderState.historyOrders.length})',
-                ),
+                Tab(text: 'New (${orderState.issuedOrders.length})'),
+                Tab(text: 'Scheduled (${orderState.scheduledOrders.length})'),
+                Tab(text: 'History (${orderState.historyOrders.length})'),
               ],
             ),
           ),
@@ -149,10 +146,25 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
                 : TabBarView(
                     controller: _tabController,
                     children: [
-                      _buildOrderList(orderState.activeOrders,
-                          isActive: true),
-                      _buildOrderList(orderState.historyOrders,
-                          isActive: false),
+                      _buildOrderList(
+                        orderState.issuedOrders,
+                        emptyIcon: Icons.notifications_active_outlined,
+                        emptyTitle: 'No new orders',
+                        emptySubtitle: 'New customer orders will appear here',
+                        showActions: true,
+                      ),
+                      _buildOrderList(
+                        orderState.scheduledOrders,
+                        emptyIcon: Icons.schedule_outlined,
+                        emptyTitle: 'No scheduled orders',
+                        emptySubtitle: 'Accepted orders will appear here',
+                      ),
+                      _buildOrderList(
+                        orderState.historyOrders,
+                        emptyIcon: Icons.history,
+                        emptyTitle: 'No order history',
+                        emptySubtitle: 'Completed orders will show here',
+                      ),
                     ],
                   ),
           ),
@@ -161,7 +173,6 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
     );
   }
 
-  // ---- Shimmer loading skeleton ----
   Widget _buildShimmerList() {
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -172,16 +183,18 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
     );
   }
 
-  // ---- Order list (active or history) ----
-  Widget _buildOrderList(List<Order> orders, {required bool isActive}) {
+  Widget _buildOrderList(
+    List<Order> orders, {
+    required IconData emptyIcon,
+    required String emptyTitle,
+    required String emptySubtitle,
+    bool showActions = false,
+  }) {
     if (orders.isEmpty) {
       return EmptyState(
-        icon: isActive ? Icons.receipt_long_outlined : Icons.history,
-        title: isActive ? 'No active orders' : 'No order history',
-        subtitle: isActive
-            ? 'Your active orders will appear here'
-            : 'Completed orders will show here',
-        actionLabel: isActive ? 'Start Shopping' : null,
+        icon: emptyIcon,
+        title: emptyTitle,
+        subtitle: emptySubtitle,
       );
     }
 
@@ -197,18 +210,14 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
           return StaggeredListItem(
             index: index,
             animation: _entranceCtrl,
-            child: PressableScale(
-              onTap: () {},
-              child: _buildOrderCard(orders[index]),
-            ),
+            child: _buildOrderCard(orders[index], showActions: showActions),
           );
         },
       ),
     );
   }
 
-  // ---- Individual order card ----
-  Widget _buildOrderCard(Order order) {
+  Widget _buildOrderCard(Order order, {bool showActions = false}) {
     final borderColor = _getStatusBorderColor(order.status);
 
     return Container(
@@ -302,7 +311,7 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Qty: ${order.orderQuantity}',
+                        'Qty: ${order.orderQuantity}${order.orderUnit != null ? ' ${order.orderUnit}' : ''}',
                         style: const TextStyle(
                           fontSize: 13,
                           color: AppColors.textSecondary,
@@ -328,9 +337,53 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
                   ),
                 ),
 
+                // -- Customer info --
+                if (order.customerName != null) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.info.withOpacity(0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.person_outline,
+                          size: 12,
+                          color: AppColors.info,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          order.customerName!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (order.customerPhone != null) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          order.customerPhone!,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+
                 // -- Pickup point --
                 if (order.customerPickupPoint != null) ...[
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       Container(
@@ -360,6 +413,57 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
                     ],
                   ),
                 ],
+
+                // -- Accept/Reject buttons --
+                if (showActions) ...[
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => _showRejectDialog(order),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.error,
+                            side: const BorderSide(color: AppColors.error),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          child: const Text(
+                            'Reject',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => _handleAccept(order),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                          ),
+                          child: const Text(
+                            'Accept',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -368,7 +472,143 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
     );
   }
 
-  // ---- Status-based left border color ----
+  Future<void> _handleAccept(Order order) async {
+    HapticFeedback.mediumImpact();
+    final user = ref.read(authStateProvider).user;
+    if (user?.vendorId == null || order.id == null) return;
+
+    final success = await ref
+        .read(vendorOrdersProvider.notifier)
+        .acceptOrder(order.id!, user!.vendorId!);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                success ? Icons.check_circle : Icons.error,
+                color: Colors.white,
+                size: 18,
+              ),
+              const SizedBox(width: 8),
+              Text(success
+                  ? 'Order #${order.id} accepted'
+                  : 'Failed to accept order'),
+            ],
+          ),
+          backgroundColor: success ? AppColors.success : AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showRejectDialog(Order order) {
+    HapticFeedback.mediumImpact();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.error.withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.cancel_outlined,
+                color: AppColors.error,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Reject Order',
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to reject this order? The stock will be restored automatically.',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          PressableScale(
+            onTap: () async {
+              Navigator.pop(ctx);
+              final user = ref.read(authStateProvider).user;
+              if (user?.vendorId == null || order.id == null) return;
+
+              final success = await ref
+                  .read(vendorOrdersProvider.notifier)
+                  .rejectOrder(order.id!, user!.vendorId!);
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        Icon(
+                          success ? Icons.check_circle : Icons.error,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(success
+                            ? 'Order #${order.id} rejected'
+                            : 'Failed to reject order'),
+                      ],
+                    ),
+                    backgroundColor:
+                        success ? AppColors.success : AppColors.error,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.error,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'Reject',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Color _getStatusBorderColor(OrderStatus status) {
     switch (status) {
       case OrderStatus.DELIVERED:
@@ -380,7 +620,7 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
       case OrderStatus.CANCELLED_BY_VENDOR:
         return AppColors.error;
       default:
-        return const Color(0xFFF59E0B); // warning amber
+        return const Color(0xFFF59E0B);
     }
   }
 }

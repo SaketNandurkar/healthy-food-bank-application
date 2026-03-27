@@ -90,8 +90,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           SnackBar(
             content: const Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20),
-                SizedBox(width: 10),
+                Icon(Icons.check_circle, color: Colors.white, size: 18),
+                SizedBox(width: 8),
                 Text('Profile updated successfully!'),
               ],
             ),
@@ -144,8 +144,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
           SnackBar(
             content: const Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white, size: 20),
-                SizedBox(width: 10),
+                Icon(Icons.check_circle, color: Colors.white, size: 18),
+                SizedBox(width: 8),
                 Text('Password updated successfully!'),
               ],
             ),
@@ -175,28 +175,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
       body: Column(
         children: [
           PremiumHeader(
-            child: Row(
-              children: [
-                PressableScale(
-                  onTap: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
-                    ),
-                    child: const Icon(Icons.arrow_back, color: Colors.white, size: 22),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Text(
+            child: SafeArea(
+              bottom: false,
+              child: Row(
+                children: [
+                  _buildBackButton(),
+                  const SizedBox(width: 12),
+                  const Text(
                     'Edit Profile',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.5),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Expanded(
@@ -209,7 +199,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                     animation: _entranceCtrl,
                     child: _buildProfileCard(),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   StaggeredListItem(
                     index: 1,
                     animation: _entranceCtrl,
@@ -225,35 +215,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     );
   }
 
+  Widget _buildBackButton() {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+      ),
+    );
+  }
+
   Widget _buildProfileCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: PremiumShadows.elevated(),
-      ),
+      padding: const EdgeInsets.all(20),
+      decoration: premiumCardDecoration(),
       child: Form(
         key: _profileFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 20),
-                ),
-                const SizedBox(width: 10),
-                const Text('Personal Information',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
-              ],
-            ),
-            const SizedBox(height: 20),
+            _buildSectionHeader(Icons.person_rounded, AppColors.primary, 'Personal Information'),
+            const SizedBox(height: 16),
             _buildField('First Name', _firstNameCtrl, Icons.person_outline,
                 validator: (v) => (v == null || v.trim().length < 2) ? 'Min 2 characters' : null),
             _buildField('Last Name', _lastNameCtrl, Icons.person_outline,
@@ -265,30 +251,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
                 validator: (v) => (v != null && v.isNotEmpty && v.length != 10) ? '10-digit phone number' : null,
                 isLast: true),
-            const SizedBox(height: 8),
-            PressableScale(
-              onTap: _isSavingProfile ? null : _handleSaveProfile,
-              enableHaptic: false,
-              child: Container(
-                width: double.infinity,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: _isSavingProfile ? null : PremiumGradients.button(),
-                  color: _isSavingProfile ? AppColors.textHint : null,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: _isSavingProfile
-                      ? null
-                      : [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
-                ),
-                child: Center(
-                  child: _isSavingProfile
-                      ? const SizedBox(width: 24, height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Save Changes',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.3)),
-                ),
-              ),
-            ),
+            const SizedBox(height: 16),
+            _buildPrimaryButton('Save Changes', _isSavingProfile, _handleSaveProfile),
           ],
         ),
       ),
@@ -297,33 +261,15 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
 
   Widget _buildPasswordCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: PremiumShadows.elevated(),
-      ),
+      padding: const EdgeInsets.all(20),
+      decoration: premiumCardDecoration(),
       child: Form(
         key: _passwordFormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.lock_rounded, color: AppColors.warning, size: 20),
-                ),
-                const SizedBox(width: 10),
-                const Text('Change Password',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
-              ],
-            ),
-            const SizedBox(height: 20),
+            _buildSectionHeader(Icons.lock_rounded, AppColors.warning, 'Change Password'),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _currentPasswordCtrl,
               obscureText: _obscureCurrent,
@@ -338,7 +284,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               ),
               validator: (v) => (v == null || v.isEmpty) ? 'Current password is required' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _newPasswordCtrl,
               obscureText: _obscureNew,
@@ -354,7 +300,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               ),
               validator: (v) => (v == null || v.length < 6) ? 'Min 6 characters' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _confirmPasswordCtrl,
               obscureText: _obscureConfirm,
@@ -373,33 +319,28 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 return null;
               },
             ),
-            const SizedBox(height: 24),
-            PressableScale(
-              onTap: _isSavingPassword ? null : _handleChangePassword,
-              enableHaptic: false,
-              child: Container(
-                width: double.infinity,
-                height: 52,
-                decoration: BoxDecoration(
-                  gradient: _isSavingPassword ? null : PremiumGradients.button(),
-                  color: _isSavingPassword ? AppColors.textHint : null,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: _isSavingPassword
-                      ? null
-                      : [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4))],
-                ),
-                child: Center(
-                  child: _isSavingPassword
-                      ? const SizedBox(width: 24, height: 24,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Update Password',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white, letterSpacing: 0.3)),
-                ),
-              ),
-            ),
+            const SizedBox(height: 20),
+            _buildPrimaryButton('Update Password', _isSavingPassword, _handleChangePassword),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(IconData icon, Color color, String title) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 18),
+        ),
+        const SizedBox(width: 10),
+        Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: -0.2)),
+      ],
     );
   }
 
@@ -411,7 +352,26 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
         color: AppColors.primary.withOpacity(0.08),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, color: AppColors.primary.withOpacity(0.7), size: 20),
+      child: Icon(icon, color: AppColors.primary.withOpacity(0.7), size: 18),
+    );
+  }
+
+  Widget _buildPrimaryButton(String label, bool isLoading, VoidCallback onTap) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onTap,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isLoading ? AppColors.textHint : AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: isLoading
+            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : Text(label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+      ),
     );
   }
 
@@ -423,7 +383,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
     bool isLast = false,
   }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,

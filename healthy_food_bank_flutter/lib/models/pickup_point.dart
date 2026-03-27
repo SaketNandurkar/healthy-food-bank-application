@@ -37,6 +37,20 @@ class PickupPoint {
     );
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      if (id != null) 'id': id,
+      'name': name,
+      'address': address,
+      if (city != null) 'city': city,
+      if (state != null) 'state': state,
+      if (zipCode != null) 'zipCode': zipCode,
+      if (contactNumber != null) 'contactNumber': contactNumber,
+      'active': active,
+      if (createdDate != null) 'createdDate': createdDate!.toIso8601String(),
+    };
+  }
+
   String get fullAddress {
     final parts = [address];
     if (city != null && city!.isNotEmpty) parts.add(city!);

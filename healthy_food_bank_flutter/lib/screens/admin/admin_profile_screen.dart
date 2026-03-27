@@ -4,19 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/theme.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/admin_navigation_provider.dart';
 import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
-import 'customer_shell.dart';
 
-class CustomerProfileScreen extends ConsumerStatefulWidget {
-  const CustomerProfileScreen({super.key});
+class AdminProfileScreen extends ConsumerStatefulWidget {
+  const AdminProfileScreen({super.key});
 
   @override
-  ConsumerState<CustomerProfileScreen> createState() =>
-      _CustomerProfileScreenState();
+  ConsumerState<AdminProfileScreen> createState() =>
+      _AdminProfileScreenState();
 }
 
-class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
+class _AdminProfileScreenState extends ConsumerState<AdminProfileScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _entranceCtrl;
 
@@ -44,25 +44,64 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // ---- Green gradient profile header ----
+            // Green gradient profile header
             _buildProfileHeader(user),
 
             const SizedBox(height: 20),
 
-            // ---- Menu sections ----
+            // Menu sections
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // == ACCOUNT ==
+                  // == ADMIN ==
                   StaggeredListItem(
                     index: 0,
+                    animation: _entranceCtrl,
+                    child: _buildSectionTitle('Admin'),
+                  ),
+                  StaggeredListItem(
+                    index: 1,
+                    animation: _entranceCtrl,
+                    child: _buildMenuCard([
+                      _MenuItem(
+                        Icons.dashboard_outlined,
+                        'Dashboard',
+                        AppColors.primary,
+                        () => ref.read(adminNavigationProvider.notifier).state = 0,
+                      ),
+                      _MenuItem(
+                        Icons.people_outlined,
+                        'Manage Users',
+                        AppColors.info,
+                        () => ref.read(adminNavigationProvider.notifier).state = 1,
+                      ),
+                      _MenuItem(
+                        Icons.qr_code_outlined,
+                        'Vendor Codes',
+                        AppColors.warning,
+                        () => ref.read(adminNavigationProvider.notifier).state = 2,
+                      ),
+                      _MenuItem(
+                        Icons.location_on_outlined,
+                        'Pickup Points',
+                        AppColors.success,
+                        () => ref.read(adminNavigationProvider.notifier).state = 3,
+                      ),
+                    ]),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // == ACCOUNT ==
+                  StaggeredListItem(
+                    index: 2,
                     animation: _entranceCtrl,
                     child: _buildSectionTitle('Account'),
                   ),
                   StaggeredListItem(
-                    index: 1,
+                    index: 3,
                     animation: _entranceCtrl,
                     child: _buildMenuCard([
                       _MenuItem(
@@ -71,21 +110,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
                         AppColors.primary,
                         () => Navigator.pushNamed(context, '/edit-profile'),
                       ),
-                      _MenuItem(
-                        Icons.location_on_outlined,
-                        'My Pickup Points',
-                        AppColors.info,
-                        () => Navigator.pushNamed(
-                            context, '/my-pickup-points'),
-                      ),
-                      _MenuItem(
-                        Icons.receipt_long_outlined,
-                        'Order History',
-                        AppColors.warning,
-                        () => CustomerShell
-                            .shellKey.currentState
-                            ?.switchToTab(2),
-                      ),
                     ]),
                   ),
 
@@ -93,20 +117,19 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
 
                   // == PREFERENCES ==
                   StaggeredListItem(
-                    index: 2,
+                    index: 4,
                     animation: _entranceCtrl,
                     child: _buildSectionTitle('Preferences'),
                   ),
                   StaggeredListItem(
-                    index: 3,
+                    index: 5,
                     animation: _entranceCtrl,
                     child: _buildMenuCard([
                       _MenuItem(
                         Icons.notifications_outlined,
                         'Notifications',
                         AppColors.orange,
-                        () => Navigator.pushNamed(
-                            context, '/notifications'),
+                        () => Navigator.pushNamed(context, '/notifications'),
                       ),
                       _MenuItem(
                         Icons.settings_outlined,
@@ -121,12 +144,12 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
 
                   // == SUPPORT ==
                   StaggeredListItem(
-                    index: 4,
+                    index: 6,
                     animation: _entranceCtrl,
                     child: _buildSectionTitle('Support'),
                   ),
                   StaggeredListItem(
-                    index: 5,
+                    index: 7,
                     animation: _entranceCtrl,
                     child: _buildMenuCard([
                       _MenuItem(
@@ -136,19 +159,21 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
                         () => Navigator.pushNamed(context, '/help-faq'),
                       ),
                       _MenuItem(
-                        Icons.mail_outline,
-                        'Contact Us',
+                        Icons.analytics_outlined,
+                        'System Reports',
                         AppColors.info,
-                        () => Navigator.pushNamed(context, '/help-faq'),
+                        () {
+                          // TODO: Navigate to reports
+                        },
                       ),
                     ]),
                   ),
 
                   const SizedBox(height: 20),
 
-                  // ---- Logout button ----
+                  // Logout button
                   StaggeredListItem(
-                    index: 6,
+                    index: 8,
                     animation: _entranceCtrl,
                     child: PressableScale(
                       onTap: () => _showLogoutDialog(context, ref),
@@ -204,13 +229,13 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
 
                   const SizedBox(height: 16),
 
-                  // ---- App version ----
+                  // App version
                   StaggeredListItem(
-                    index: 7,
+                    index: 9,
                     animation: _entranceCtrl,
                     child: Center(
                       child: Text(
-                        'Healthy Food Bank v1.0.0',
+                        'Healthy Food Bank v1.0.0 - Admin',
                         style: TextStyle(
                           fontSize: 12,
                           color: AppColors.textHint.withOpacity(0.6),
@@ -230,7 +255,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Green gradient header with avatar, name, email, role badge ----
   Widget _buildProfileHeader(User? user) {
     return PremiumHeader(
       padding:
@@ -241,7 +265,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // -- Avatar circle with initials --
+            // Avatar circle with initials
             Container(
               width: 88,
               height: 88,
@@ -262,7 +286,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
               ),
               child: Center(
                 child: Text(
-                  user?.initials ?? 'U',
+                  user?.initials ?? 'A',
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
@@ -274,9 +298,9 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
 
             const SizedBox(height: 14),
 
-            // -- Full name --
+            // Full name
             Text(
-              user?.fullName ?? 'User',
+              user?.fullName ?? 'Admin',
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
@@ -286,7 +310,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
               textAlign: TextAlign.center,
             ),
 
-            // -- Email --
+            // Email
             if (user?.email != null) ...[
               const SizedBox(height: 4),
               Text(
@@ -301,7 +325,7 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
 
             const SizedBox(height: 10),
 
-            // -- Role badge --
+            // Role badge
             Container(
               padding:
                   const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -316,13 +340,13 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    Icons.check_circle,
+                    Icons.admin_panel_settings_rounded,
                     size: 14,
                     color: Colors.white.withOpacity(0.9),
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    user?.role.toString().split('.').last ?? 'CUSTOMER',
+                    'ADMIN',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -339,7 +363,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Section title (uppercase, muted) ----
   Widget _buildSectionTitle(String title) {
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 10),
@@ -355,7 +378,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Menu card with grouped items ----
   Widget _buildMenuCard(List<_MenuItem> items) {
     return Container(
       decoration: BoxDecoration(
@@ -420,7 +442,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
     );
   }
 
-  // ---- Logout confirmation dialog ----
   void _showLogoutDialog(BuildContext context, WidgetRef ref) {
     HapticFeedback.mediumImpact();
     showDialog(
@@ -505,7 +526,6 @@ class _CustomerProfileScreenState extends ConsumerState<CustomerProfileScreen>
   }
 }
 
-// ---- Private menu item data class ----
 class _MenuItem {
   final IconData icon;
   final String title;
