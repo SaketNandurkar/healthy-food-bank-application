@@ -28,7 +28,7 @@ public class PickupPoint {
     private String contactNumber;
 
     @Column(nullable = false)
-    private Boolean active = true;
+    private boolean active = true;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdDate;
@@ -38,9 +38,6 @@ public class PickupPoint {
     @PrePersist
     protected void onCreate() {
         createdDate = LocalDateTime.now();
-        if (active == null) {
-            active = true;
-        }
     }
 
     @PreUpdate

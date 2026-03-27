@@ -10,6 +10,7 @@ import user_service.entity.VendorCode;
 import user_service.exception.UserNotFoundException;
 import user_service.repository.CustomerRepository;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -234,6 +235,74 @@ public class UserService {
             e.printStackTrace();
             logger.error("Error during authorization check for user ID: {}", targetUserId, e);
             return false;
+        }
+    }
+
+    // ============ ADMIN USER MANAGEMENT METHODS ============
+
+    public List<Customer> getAllUsers(String role) {
+        try {
+            List<Customer> users;
+            if (role != null && !role.isEmpty()) {
+                users = repository.findAll().stream()
+                    .filter(user -> role.equalsIgnoreCase(user.getRoles()))
+                    .toList();
+                logger.info("Retrieved {} users with role: {}", users.size(), role);
+            } else {
+                users = repository.findAll();
+                logger.info("Retrieved all {} users", users.size());
+            }
+            return users;
+        } catch (Exception e) {
+            logger.error("Error retrieving users with role: {}", role, e);
+            throw new RuntimeException("Failed to retrieve users", e);
+        }
+    }
+
+    public Map<String, Long> getUserStats() {
+        try {
+            List<Customer> allUsers = repository.findAll();
+
+            long totalUsers = allUsers.size();
+            long customers = allUsers.stream().filter(u -> "CUSTOMER".equals(u.getRoles())).count();
+            long vendors = allUsers.stream().filter(u -> "VENDOR".equals(u.getRoles())).count();
+            long admins = allUsers.stream().filter(u -> "ADMIN".equals(u.getRoles())).count();
+            long activeUsers = allUsers.stream().filter(Customer::isActive).count();
+
+            Map<String, Long> stats = new HashMap<>();
+            stats.put("totalUsers", totalUsers);
+            stats.put("customers", customers);
+            stats.put("vendors", vendors);
+            stats.put("admins", admins);
+            stats.put("activeUsers", activeUsers);
+
+            logger.info("User stats - Total: {}, Customers: {}, Vendors: {}, Admins: {}, Active: {}",
+                totalUsers, customers, vendors, admins, activeUsers);
+
+            return stats;
+        } catch (Exception e) {
+            logger.error("Error calculating user stats", e);
+            throw new RuntimeException("Failed to calculate user stats", e);
+        }
+    }
+
+    public Customer setUserActiveStatus(Integer userId, boolean active) {
+        try {
+            Customer user = repository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+
+            user.setActive(active);
+            Customer updated = repository.save(user);
+
+            logger.info("User {} (ID: {}) has been {}",
+                user.getUserName(), userId, active ? "activated" : "deactivated");
+
+            return updated;
+        } catch (UserNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error updating user status for ID: {}", userId, e);
+            throw new RuntimeException("Failed to update user status", e);
         }
     }
 

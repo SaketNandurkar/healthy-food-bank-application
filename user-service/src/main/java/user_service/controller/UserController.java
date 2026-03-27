@@ -583,4 +583,90 @@ public class UserController {
             return ResponseEntity.badRequest().body("Failed to change password: " + e.getMessage());
         }
     }
+
+    // ============ ADMIN USER MANAGEMENT APIs ============
+
+    @Operation(summary = "Get all users (Admin only)",
+            description = "Retrieve list of all users with optional role filter")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Users retrieved successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin only")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/admin/users")
+    public ResponseEntity<List<Customer>> getAllUsers(
+            @Parameter(description = "Filter by role (CUSTOMER, VENDOR, ADMIN)")
+            @RequestParam(required = false) String role) {
+        try {
+            List<Customer> users = userService.getAllUsers(role);
+            return ResponseEntity.ok(users);
+        } catch (Exception e) {
+            System.out.println("Error getting users: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @Operation(summary = "Get user statistics (Admin only)",
+            description = "Get counts of users by role for dashboard")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Statistics retrieved successfully"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin only")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/admin/users/stats")
+    public ResponseEntity<Map<String, Long>> getUserStats() {
+        try {
+            Map<String, Long> stats = userService.getUserStats();
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            System.out.println("Error getting user stats: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    @Operation(summary = "Activate user (Admin only)",
+            description = "Activate a deactivated user account")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User activated successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin only")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PutMapping("/admin/users/{id}/activate")
+    public ResponseEntity<Customer> activateUser(
+            @Parameter(description = "ID of the user to activate", required = true)
+            @PathVariable Integer id) {
+        try {
+            Customer user = userService.setUserActiveStatus(id, true);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            System.out.println("Error activating user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    @Operation(summary = "Deactivate user (Admin only)",
+            description = "Deactivate a user account (prevents login and orders)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User deactivated successfully"),
+            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Admin only")
+    })
+    @SecurityRequirement(name = "Bearer Authentication")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PutMapping("/admin/users/{id}/deactivate")
+    public ResponseEntity<Customer> deactivateUser(
+            @Parameter(description = "ID of the user to deactivate", required = true)
+            @PathVariable Integer id) {
+        try {
+            Customer user = userService.setUserActiveStatus(id, false);
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            System.out.println("Error deactivating user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
 }

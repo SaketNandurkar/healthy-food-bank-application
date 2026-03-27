@@ -9,15 +9,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import product_service.dto.ProductDTO;
 import product_service.entity.Product;
 import product_service.enums.ProductCategory;
+import product_service.service.FileStorageService;
 import product_service.service.ProductService;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/products")
@@ -26,9 +32,14 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final FileStorageService fileStorageService;
 
-    public ProductController(ProductService productService) {
+    @Value("${server.port:9091}")
+    private int serverPort;
+
+    public ProductController(ProductService productService, FileStorageService fileStorageService) {
         this.productService = productService;
+        this.fileStorageService = fileStorageService;
     }
 
     @Operation(summary = "Health check endpoint", 
@@ -206,6 +217,30 @@ public class ProductController {
             return ResponseEntity.ok(updatedProduct);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @Operation(summary = "Upload product image",
+               description = "Uploads a product image (JPEG, PNG, WebP, GIF). Max 5MB. Returns the accessible URL.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Image uploaded successfully"),
+        @ApiResponse(responseCode = "400", description = "Invalid file or upload error")
+    })
+    @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> uploadImage(
+            @Parameter(description = "Image file to upload", required = true)
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
+        try {
+            String filename = fileStorageService.storeFile(file);
+            String baseUrl = request.getScheme() + "://" + request.getServerName() + ":" + serverPort;
+            String imageUrl = baseUrl + "/uploads/products/" + filename;
+            return ResponseEntity.ok(Map.of("imageUrl", imageUrl, "filename", filename));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to upload image: " + e.getMessage()));
         }
     }
 }

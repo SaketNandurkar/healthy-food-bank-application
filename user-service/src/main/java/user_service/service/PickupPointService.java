@@ -82,7 +82,7 @@ public class PickupPointService {
         existing.setName(pickupPoint.getName());
         existing.setAddress(pickupPoint.getAddress());
         existing.setContactNumber(pickupPoint.getContactNumber());
-        existing.setActive(pickupPoint.getActive());
+        existing.setActive(pickupPoint.isActive());
 
         PickupPoint updated = pickupPointRepository.save(existing);
         logger.info("Successfully updated pickup point with ID: {}", id);
