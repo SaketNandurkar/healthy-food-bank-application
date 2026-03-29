@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../services/order_service.dart';
 
 final orderCountdownProvider =
     StateNotifierProvider<OrderCountdownNotifier, OrderCountdownState>((ref) {
@@ -10,9 +11,11 @@ class OrderCountdownState {
   final int hoursRemaining;
   final int minutesRemaining;
   final int secondsRemaining;
-  final bool isActive; // True if countdown is running (Friday before 8 PM)
-  final bool isPastCutoff; // True if it's past Friday 8 PM
+  final bool isActive; // True if countdown is running (before cutoff)
+  final bool isPastCutoff; // True if cutoff has passed
   final DateTime? cutoffTime;
+  final DateTime? deliveryDate;
+  final bool isLoading;
 
   const OrderCountdownState({
     this.hoursRemaining = 0,
@@ -21,6 +24,8 @@ class OrderCountdownState {
     this.isActive = false,
     this.isPastCutoff = false,
     this.cutoffTime,
+    this.deliveryDate,
+    this.isLoading = true,
   });
 
   int get totalSeconds =>
@@ -46,6 +51,26 @@ class OrderCountdownState {
     return 'low';
   }
 
+  /// Formatted delivery date string (e.g., "Sunday, Mar 30")
+  String get deliveryDateFormatted {
+    if (deliveryDate == null) return '';
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final d = deliveryDate!;
+    return '${weekdays[d.weekday - 1]}, ${months[d.month - 1]} ${d.day}';
+  }
+
+  /// Formatted cutoff time string (e.g., "Friday 8:00 PM")
+  String get cutoffTimeFormatted {
+    if (cutoffTime == null) return '';
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final d = cutoffTime!;
+    final hour = d.hour > 12 ? d.hour - 12 : (d.hour == 0 ? 12 : d.hour);
+    final amPm = d.hour >= 12 ? 'PM' : 'AM';
+    final minute = d.minute.toString().padLeft(2, '0');
+    return '${weekdays[d.weekday - 1]} $hour:$minute $amPm';
+  }
+
   OrderCountdownState copyWith({
     int? hoursRemaining,
     int? minutesRemaining,
@@ -53,6 +78,8 @@ class OrderCountdownState {
     bool? isActive,
     bool? isPastCutoff,
     DateTime? cutoffTime,
+    DateTime? deliveryDate,
+    bool? isLoading,
   }) {
     return OrderCountdownState(
       hoursRemaining: hoursRemaining ?? this.hoursRemaining,
@@ -61,113 +88,154 @@ class OrderCountdownState {
       isActive: isActive ?? this.isActive,
       isPastCutoff: isPastCutoff ?? this.isPastCutoff,
       cutoffTime: cutoffTime ?? this.cutoffTime,
+      deliveryDate: deliveryDate ?? this.deliveryDate,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }
 
 class OrderCountdownNotifier extends StateNotifier<OrderCountdownState> {
   Timer? _timer;
+  Timer? _refreshTimer;
+  final OrderService _orderService = OrderService();
+
+  // Fallback IST offset for legacy logic
   static const _istOffset = Duration(hours: 5, minutes: 30);
 
   OrderCountdownNotifier() : super(const OrderCountdownState()) {
-    _startCountdown();
+    _fetchAndStartCountdown();
   }
 
-  DateTime _getCurrentIST() {
-    return DateTime.now().toUtc().add(_istOffset);
+  /// Fetch active delivery slot from API, then start countdown
+  Future<void> _fetchAndStartCountdown() async {
+    try {
+      final data = await _orderService.getActiveDeliverySlot();
+      final bool orderAllowed = data['orderAllowed'] ?? false;
+
+      if (orderAllowed && data['cutoffDateTime'] != null) {
+        final cutoff = DateTime.parse(data['cutoffDateTime']);
+        DateTime? delivery;
+        if (data['deliveryDate'] != null) {
+          final parts = data['deliveryDate'].toString().split('-');
+          if (parts.length == 3) {
+            delivery = DateTime(
+              int.parse(parts[0]),
+              int.parse(parts[1]),
+              int.parse(parts[2]),
+            );
+          }
+        }
+
+        state = state.copyWith(
+          cutoffTime: cutoff,
+          deliveryDate: delivery,
+          isLoading: false,
+        );
+        _startCountdownTimer();
+      } else {
+        // No active slot - order window closed
+        state = const OrderCountdownState(
+          isActive: false,
+          isPastCutoff: true,
+          isLoading: false,
+        );
+      }
+    } catch (e) {
+      // API failed - fall back to legacy Friday 8 PM IST logic
+      _startLegacyCountdown();
+    }
+
+    // Refresh slot data every 5 minutes
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(minutes: 5), (_) {
+      if (mounted) _fetchAndStartCountdown();
+    });
   }
 
-  bool _isFriday() {
-    final now = _getCurrentIST();
-    return now.weekday == DateTime.friday;
-  }
-
-  DateTime? _getFridayCutoff() {
-    final now = _getCurrentIST();
-    if (now.weekday != DateTime.friday) return null;
-
-    // Friday 8 PM (20:00) IST - MUST be in UTC timezone to match 'now'
-    final cutoff = DateTime.utc(now.year, now.month, now.day, 20, 0, 0);
-    return cutoff;
-  }
-
-  void _startCountdown() {
-    _updateCountdown(); // Initial update
-
-    // Update every second
+  /// Start countdown timer that ticks every second against the cutoff time
+  void _startCountdownTimer() {
     _timer?.cancel();
+    _updateCountdown();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      _updateCountdown();
+      if (mounted) _updateCountdown();
     });
   }
 
   void _updateCountdown() {
-    final now = _getCurrentIST();
-    print('🔥 COUNTDOWN DEBUG:');
-    print('   Current IST time: $now');
-    print('   Day of week: ${now.weekday} (5 = Friday)');
-    print('   Is Friday: ${_isFriday()}');
-
-    if (!_isFriday()) {
-      // Not Friday - deactivate countdown
-      print('   ❌ NOT FRIDAY - Countdown inactive');
-      state = const OrderCountdownState(
-        isActive: false,
-        isPastCutoff: false,
-      );
-      return;
-    }
-
-    // Use the 'now' already declared above
-    final cutoff = _getFridayCutoff();
-
-    print('   Cutoff time: $cutoff');
-
+    final cutoff = state.cutoffTime;
     if (cutoff == null) {
-      print('   ❌ Cutoff is null');
-      state = const OrderCountdownState(isActive: false);
+      state = state.copyWith(isActive: false, isPastCutoff: true);
+      _timer?.cancel();
       return;
     }
 
-    // Check if past cutoff
+    final now = DateTime.now();
     if (now.isAfter(cutoff)) {
-      print('   ❌ PAST CUTOFF - Countdown inactive');
-      state = OrderCountdownState(
+      state = state.copyWith(
         isActive: false,
         isPastCutoff: true,
-        cutoffTime: cutoff,
+        hoursRemaining: 0,
+        minutesRemaining: 0,
+        secondsRemaining: 0,
       );
-      _timer?.cancel(); // Stop timer once past cutoff
+      _timer?.cancel();
       return;
     }
 
-    // Calculate remaining time
     final difference = cutoff.difference(now);
     final hours = difference.inHours;
     final minutes = difference.inMinutes.remainder(60);
     final seconds = difference.inSeconds.remainder(60);
 
-    print('   ✅ COUNTDOWN ACTIVE!');
-    print('   Time remaining: ${hours}h ${minutes}m ${seconds}s');
-    print('   Urgency level: ${hours < 2 ? "high" : hours < 4 ? "medium" : "low"}');
-
-    state = OrderCountdownState(
+    state = state.copyWith(
       hoursRemaining: hours,
       minutesRemaining: minutes,
       secondsRemaining: seconds,
       isActive: true,
       isPastCutoff: false,
-      cutoffTime: cutoff,
+      isLoading: false,
     );
   }
 
+  /// Legacy fallback: Friday 8 PM IST countdown
+  void _startLegacyCountdown() {
+    final now = DateTime.now().toUtc().add(_istOffset);
+
+    if (now.weekday != DateTime.friday) {
+      state = OrderCountdownState(
+        isActive: false,
+        isPastCutoff: now.weekday == DateTime.saturday || now.weekday == DateTime.sunday,
+        isLoading: false,
+      );
+      return;
+    }
+
+    final cutoff = DateTime.utc(now.year, now.month, now.day, 20, 0, 0);
+    if (now.isAfter(cutoff)) {
+      state = OrderCountdownState(
+        isActive: false,
+        isPastCutoff: true,
+        cutoffTime: cutoff,
+        isLoading: false,
+      );
+      return;
+    }
+
+    state = state.copyWith(
+      cutoffTime: cutoff,
+      isLoading: false,
+    );
+    _startCountdownTimer();
+  }
+
   void refresh() {
-    _updateCountdown();
+    _fetchAndStartCountdown();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 }

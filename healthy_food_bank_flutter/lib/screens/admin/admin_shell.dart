@@ -7,6 +7,7 @@ import 'admin_dashboard_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_vendor_codes_screen.dart';
 import 'admin_pickup_points_screen.dart';
+import 'admin_delivery_slots_screen.dart';
 import 'admin_profile_screen.dart';
 
 class AdminShell extends ConsumerWidget {
@@ -17,6 +18,7 @@ class AdminShell extends ConsumerWidget {
     AdminUsersScreen(),
     AdminVendorCodesScreen(),
     AdminPickupPointsScreen(),
+    AdminDeliverySlotsScreen(),
     AdminProfileScreen(),
   ];
 
@@ -78,10 +80,18 @@ class AdminShell extends ConsumerWidget {
                 _buildNavItem(
                   context,
                   ref,
+                  Icons.calendar_today_outlined,
+                  Icons.calendar_today_rounded,
+                  'Slots',
+                  4,
+                ),
+                _buildNavItem(
+                  context,
+                  ref,
                   Icons.person_outline_rounded,
                   Icons.person_rounded,
                   'Profile',
-                  4,
+                  5,
                 ),
               ],
             ),

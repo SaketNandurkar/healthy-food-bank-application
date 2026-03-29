@@ -78,9 +78,17 @@ class OrderService {
   }
 
   /// Check if orders are currently allowed based on business rules
-  /// Returns timing information including Friday warning
+  /// Returns timing information including delivery slot data
   Future<Map<String, dynamic>> checkOrderTiming() async {
     final response = await _api.get(ApiConfig.checkOrderTiming);
+    if (!response.success) throw Exception(response.error);
+    return response.data as Map<String, dynamic>;
+  }
+
+  /// Get the current active delivery slot
+  /// Returns slot info with orderAllowed status and time until cutoff
+  Future<Map<String, dynamic>> getActiveDeliverySlot() async {
+    final response = await _api.get(ApiConfig.activeDeliverySlot);
     if (!response.success) throw Exception(response.error);
     return response.data as Map<String, dynamic>;
   }

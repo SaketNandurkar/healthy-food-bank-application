@@ -32,6 +32,8 @@ class _CartScreenState extends ConsumerState<CartScreen>
   bool _orderAllowed = true;
   bool _isFriday = false;
   String? _warningMessage;
+  String? _deliveryDate;
+  String? _cutoffDateTime;
   bool _loadingTiming = true;
   Timer? _timingRefreshTimer;
 
@@ -81,6 +83,8 @@ class _CartScreenState extends ConsumerState<CartScreen>
           _orderAllowed = timing['orderAllowed'] ?? true;
           _isFriday = timing['isFriday'] ?? false;
           _warningMessage = timing['warningMessage'];
+          _deliveryDate = timing['deliveryDate']?.toString();
+          _cutoffDateTime = timing['cutoffDateTime']?.toString();
           _loadingTiming = false;
         });
       }

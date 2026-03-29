@@ -76,6 +76,12 @@ class ApiConfig {
   static String rejectOrder(int id) => '$orderServiceUrl/order/$id/reject';
   static String updateOrderStatus(int id) => '$orderServiceUrl/order/$id/status';
 
+  // Delivery Slots
+  static const String deliverySlots = '$orderServiceUrl/delivery-slots';
+  static const String activeDeliverySlot = '$orderServiceUrl/delivery-slots/active';
+  static String deliverySlotById(int id) => '$orderServiceUrl/delivery-slots/$id';
+  static String toggleDeliverySlot(int id) => '$orderServiceUrl/delivery-slots/$id/toggle';
+
   // Admin - Vendor Codes
   static const String adminVendorCodesUrl = '$userServiceUrl/user/admin/vendor-codes';
   static const String vendorCodes = '$userServiceUrl/user/admin/vendor-codes';

@@ -84,10 +84,23 @@ public class OrderController {
             "Orders are currently being accepted" :
             orderTimeValidator.getCutoffMessage());
 
-        if (isFriday && hoursUntilCutoff != null) {
+        if (hoursUntilCutoff != null) {
             response.put("hoursUntilCutoff", hoursUntilCutoff);
+        }
+
+        if (isFriday && hoursUntilCutoff != null) {
             response.put("warningMessage",
                 "⚠️ Last day to place orders for weekend delivery. Order before 8 PM today.");
+        }
+
+        // Delivery slot info (new fields, backward compatible)
+        java.time.LocalDate deliveryDate = orderTimeValidator.getDeliveryDate();
+        java.time.LocalDateTime cutoffDateTime = orderTimeValidator.getCutoffDateTime();
+        if (deliveryDate != null) {
+            response.put("deliveryDate", deliveryDate.toString());
+        }
+        if (cutoffDateTime != null) {
+            response.put("cutoffDateTime", cutoffDateTime.toString());
         }
 
         return ResponseEntity.ok(response);

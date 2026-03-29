@@ -1,6 +1,7 @@
 import '../config/api_config.dart';
 import '../models/user.dart';
 import '../models/pickup_point.dart';
+import '../models/delivery_slot.dart';
 import 'api_client.dart';
 
 class VendorCode {
@@ -232,5 +233,40 @@ class AdminService {
         await _api.put('${ApiConfig.pickupPointsUrl}/$id/deactivate');
     if (!response.success) throw Exception(response.error);
     return PickupPoint.fromJson(response.data);
+  }
+
+  // ============ DELIVERY SLOT MANAGEMENT ============
+
+  Future<List<DeliverySlot>> getDeliverySlots() async {
+    final response = await _api.get(ApiConfig.deliverySlots);
+    if (!response.success) throw Exception(response.error);
+    return (response.data as List)
+        .map((json) => DeliverySlot.fromJson(json))
+        .toList();
+  }
+
+  Future<DeliverySlot> createDeliverySlot(DeliverySlot slot) async {
+    final response =
+        await _api.post(ApiConfig.deliverySlots, body: slot.toJson());
+    if (!response.success) throw Exception(response.error);
+    return DeliverySlot.fromJson(response.data);
+  }
+
+  Future<DeliverySlot> updateDeliverySlot(int id, DeliverySlot slot) async {
+    final response =
+        await _api.put(ApiConfig.deliverySlotById(id), body: slot.toJson());
+    if (!response.success) throw Exception(response.error);
+    return DeliverySlot.fromJson(response.data);
+  }
+
+  Future<DeliverySlot> toggleDeliverySlot(int id) async {
+    final response = await _api.put(ApiConfig.toggleDeliverySlot(id));
+    if (!response.success) throw Exception(response.error);
+    return DeliverySlot.fromJson(response.data);
+  }
+
+  Future<void> deleteDeliverySlot(int id) async {
+    final response = await _api.delete(ApiConfig.deliverySlotById(id));
+    if (!response.success) throw Exception(response.error);
   }
 }

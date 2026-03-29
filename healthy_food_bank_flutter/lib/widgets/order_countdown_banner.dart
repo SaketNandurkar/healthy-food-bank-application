@@ -41,19 +41,10 @@ class _OrderCountdownBannerState extends ConsumerState<OrderCountdownBanner>
   Widget build(BuildContext context) {
     final countdown = ref.watch(orderCountdownProvider);
 
-    print('🎨 OrderCountdownBanner build()');
-    print('   isActive: ${countdown.isActive}');
-    print('   isPastCutoff: ${countdown.isPastCutoff}');
-    print('   hoursRemaining: ${countdown.hoursRemaining}');
-
-    // Don't show if not active (not Friday or past cutoff handled separately)
-    if (!countdown.isActive) {
-      print('   ❌ Banner hidden (not active)');
+    // Don't show if not active or still loading
+    if (!countdown.isActive || countdown.isLoading) {
       return const SizedBox.shrink();
     }
-
-    print('   ✅ Banner visible!');
-    print('   Urgency: ${countdown.urgencyLevel}');
 
     // Determine colors based on urgency
     Color bgColor;
@@ -131,7 +122,9 @@ class _OrderCountdownBannerState extends ConsumerState<OrderCountdownBanner>
                   Text(
                     countdown.urgencyLevel == 'high'
                         ? '🚨 Hurry! Order window closing soon'
-                        : '⏰ Last chance for weekend orders',
+                        : countdown.deliveryDateFormatted.isNotEmpty
+                            ? '📅 Next Delivery: ${countdown.deliveryDateFormatted}'
+                            : '⏰ Last chance for weekend orders',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -141,7 +134,9 @@ class _OrderCountdownBannerState extends ConsumerState<OrderCountdownBanner>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Order before 8:00 PM IST today',
+                    countdown.cutoffTimeFormatted.isNotEmpty
+                        ? 'Order before: ${countdown.cutoffTimeFormatted}'
+                        : 'Order before cutoff time',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -342,7 +337,9 @@ class _DetailedCountdownCardState extends ConsumerState<DetailedCountdownCard>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Friday 8:00 PM IST',
+                        countdown.cutoffTimeFormatted.isNotEmpty
+                            ? countdown.cutoffTimeFormatted
+                            : 'Check delivery schedule',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -387,8 +384,10 @@ class _DetailedCountdownCardState extends ConsumerState<DetailedCountdownCard>
               ),
               child: Text(
                 isUrgent
-                    ? '🚨 Add items to cart NOW to secure weekend delivery!'
-                    : '⏰ Order today for fresh weekend delivery',
+                    ? '🚨 Add items to cart NOW to secure delivery!'
+                    : countdown.deliveryDateFormatted.isNotEmpty
+                        ? '📦 Order today for ${countdown.deliveryDateFormatted} delivery'
+                        : '⏰ Order today for fresh delivery',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 13,
