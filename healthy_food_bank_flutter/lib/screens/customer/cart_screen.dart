@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/product_provider.dart';
+import '../../services/order_service.dart';
 import '../../utils/helpers.dart';
 import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
@@ -22,20 +24,80 @@ class CartScreen extends ConsumerStatefulWidget {
 }
 
 class _CartScreenState extends ConsumerState<CartScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _entranceCtrl;
+  final OrderService _orderService = OrderService();
+
+  // Order timing state
+  bool _orderAllowed = true;
+  bool _isFriday = false;
+  String? _warningMessage;
+  bool _loadingTiming = true;
+  Timer? _timingRefreshTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _entranceCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     )..forward();
+
+    _checkOrderTiming();
+    _startTimingRefresh();
+  }
+
+  void _startTimingRefresh() {
+    _timingRefreshTimer?.cancel();
+    // Refresh every 60 seconds to keep timing status current
+    _timingRefreshTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) {
+        if (mounted) _checkOrderTiming();
+      },
+    );
+  }
+
+  void _stopTimingRefresh() {
+    _timingRefreshTimer?.cancel();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkOrderTiming();
+      _startTimingRefresh();
+    } else if (state == AppLifecycleState.paused) {
+      _stopTimingRefresh();
+    }
+  }
+
+  Future<void> _checkOrderTiming() async {
+    try {
+      final timing = await _orderService.checkOrderTiming();
+      if (mounted) {
+        setState(() {
+          _orderAllowed = timing['orderAllowed'] ?? true;
+          _isFriday = timing['isFriday'] ?? false;
+          _warningMessage = timing['warningMessage'];
+          _loadingTiming = false;
+        });
+      }
+    } catch (e) {
+      print('Error checking order timing: $e');
+      if (mounted) {
+        setState(() {
+          _loadingTiming = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
+    _stopTimingRefresh();
+    WidgetsBinding.instance.removeObserver(this);
     _entranceCtrl.dispose();
     super.dispose();
   }
@@ -87,6 +149,35 @@ class _CartScreenState extends ConsumerState<CartScreen>
               ),
             ),
           ),
+
+          // -- Friday warning banner --
+          if (_isFriday && _warningMessage != null && !_loadingTiming)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.orange.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.orange.shade200, width: 1.5),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_rounded,
+                      color: Colors.orange.shade700, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _warningMessage!,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange.shade900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // -- Cart items or empty state --
           Expanded(
@@ -165,31 +256,64 @@ class _CartScreenState extends ConsumerState<CartScreen>
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () => _showCheckoutSheet(context, ref, cart),
+                  onPressed: (_loadingTiming || !_orderAllowed)
+                      ? null
+                      : () => _showCheckoutSheet(context, ref, cart),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: AppColors.textHint,
+                    disabledForegroundColor: Colors.white70,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.shopping_bag_outlined, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'Proceed to Checkout',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                  child: _loadingTiming
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _orderAllowed
+                                  ? Icons.shopping_bag_outlined
+                                  : Icons.schedule_rounded,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _orderAllowed
+                                  ? 'Proceed to Checkout'
+                                  : 'Order Window Closed',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
+              if (!_orderAllowed && !_loadingTiming)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    'Orders closed. Please order before Friday 8 PM IST.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.orange.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
               const SizedBox(height: 6),
 
               // Clear cart link
@@ -421,6 +545,41 @@ class _CartScreenState extends ConsumerState<CartScreen>
                                     if (!formKey.currentState!.validate()) {
                                       return;
                                     }
+
+                                    // Check order timing before placing order
+                                    if (!_orderAllowed) {
+                                      HapticFeedback.heavyImpact();
+                                      if (context.mounted) {
+                                        showDialog(
+                                          context: ctx,
+                                          builder: (dialogCtx) => AlertDialog(
+                                            icon: Icon(Icons.schedule_rounded,
+                                                color: Colors.orange.shade700,
+                                                size: 48),
+                                            title: const Text(
+                                              'Order Window Closed',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                            content: const Text(
+                                              'Orders are only accepted Monday to Friday before 8 PM IST for weekend delivery. Please try again during the ordering window.',
+                                              style: TextStyle(fontSize: 14),
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(dialogCtx),
+                                                child: const Text('OK'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+                                      return;
+                                    }
+
                                     HapticFeedback.mediumImpact();
                                     setSheetState(() => isPlacing = true);
 

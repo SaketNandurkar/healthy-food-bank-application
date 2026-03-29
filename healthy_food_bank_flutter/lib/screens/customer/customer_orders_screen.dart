@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,7 @@ import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/empty_state.dart';
+import 'order_tracking_detail_screen.dart';
 
 class CustomerOrdersScreen extends ConsumerStatefulWidget {
   const CustomerOrdersScreen({super.key});
@@ -20,13 +22,18 @@ class CustomerOrdersScreen extends ConsumerStatefulWidget {
 }
 
 class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
   late AnimationController _entranceCtrl;
+  Timer? _autoRefreshTimer;
+
+  static const _autoRefreshDuration = Duration(seconds: 30); // Poll every 30 seconds
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
     _tabController = TabController(length: 2, vsync: this);
     _entranceCtrl = AnimationController(
       vsync: this,
@@ -41,7 +48,10 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
       }
     });
 
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadOrders());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadOrders();
+      _startAutoRefresh();
+    });
   }
 
   void _loadOrders() {
@@ -51,8 +61,37 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
     }
   }
 
+  void _startAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = Timer.periodic(_autoRefreshDuration, (_) {
+      if (mounted) {
+        _loadOrders();
+      }
+    });
+  }
+
+  void _stopAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Refresh when app comes to foreground
+      _loadOrders();
+      _startAutoRefresh();
+    } else if (state == AppLifecycleState.paused) {
+      // Pause auto-refresh when app goes to background
+      _stopAutoRefresh();
+    }
+  }
+
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _stopAutoRefresh();
     _tabController.dispose();
     _entranceCtrl.dispose();
     super.dispose();
@@ -61,6 +100,67 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
   @override
   Widget build(BuildContext context) {
     final orderState = ref.watch(customerOrdersProvider);
+
+    // Show status change notifications
+    ref.listen<OrderListState>(customerOrdersProvider, (previous, current) {
+      if (current.statusChanges.isNotEmpty && mounted) {
+        // Show notifications for each status change
+        for (var entry in current.statusChanges.entries) {
+          final orderId = entry.key;
+          final message = current.getStatusChangeMessage(orderId);
+          if (message != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(
+                      Icons.notifications_active,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        message,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: AppColors.primary,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 5),
+                action: SnackBarAction(
+                  label: 'View',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    // Find the order and navigate to detail screen
+                    final order = current.orders.firstWhere(
+                      (o) => o.id == orderId,
+                      orElse: () => current.orders.first,
+                    );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            OrderTrackingDetailScreen(order: order),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            );
+            // Clear the notification after showing it
+            Future.delayed(const Duration(milliseconds: 100), () {
+              ref.read(customerOrdersProvider.notifier).clearStatusChange(orderId);
+            });
+          }
+        }
+      }
+    });
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -198,7 +298,15 @@ class _CustomerOrdersScreenState extends ConsumerState<CustomerOrdersScreen>
             index: index,
             animation: _entranceCtrl,
             child: PressableScale(
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        OrderTrackingDetailScreen(order: orders[index]),
+                  ),
+                ).then((_) => _loadOrders()); // Refresh after returning
+              },
               child: _buildOrderCard(orders[index]),
             ),
           );

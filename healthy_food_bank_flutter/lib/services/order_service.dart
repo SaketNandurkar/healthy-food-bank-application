@@ -1,5 +1,6 @@
 import '../config/api_config.dart';
 import '../models/order.dart';
+import '../models/product_demand_summary.dart';
 import 'api_client.dart';
 
 class OrderService {
@@ -23,6 +24,15 @@ class OrderService {
     return (response.data as List).map((e) => Order.fromJson(e)).toList();
   }
 
+  /// Get aggregated product demand summary for vendor
+  /// Shows total quantity needed per product for inventory planning
+  Future<VendorOrderSummaryResponse> getVendorOrderSummary(
+      String vendorId) async {
+    final response = await _api.get(ApiConfig.vendorOrderSummary(vendorId));
+    if (!response.success) throw Exception(response.error);
+    return VendorOrderSummaryResponse.fromJson(response.data);
+  }
+
   Future<List<Order>> getVendorIssuedOrders(String vendorId) async {
     final response = await _api.get(ApiConfig.vendorIssuedOrders(vendorId));
     if (!response.success) throw Exception(response.error);
@@ -31,6 +41,12 @@ class OrderService {
 
   Future<List<Order>> getVendorScheduledOrders(String vendorId) async {
     final response = await _api.get(ApiConfig.vendorScheduledOrders(vendorId));
+    if (!response.success) throw Exception(response.error);
+    return (response.data as List).map((e) => Order.fromJson(e)).toList();
+  }
+
+  Future<List<Order>> getVendorReadyOrders(String vendorId) async {
+    final response = await _api.get(ApiConfig.vendorReadyOrders(vendorId));
     if (!response.success) throw Exception(response.error);
     return (response.data as List).map((e) => Order.fromJson(e)).toList();
   }
@@ -51,11 +67,21 @@ class OrderService {
     if (!response.success) throw Exception(response.error);
   }
 
+  /// Update order status with validation (Vendor only)
+  /// Valid transitions: ISSUED→SCHEDULED, SCHEDULED→READY, READY→DELIVERED
   Future<void> updateOrderStatus(int orderId, String status) async {
     final response = await _api.put(
       ApiConfig.updateOrderStatus(orderId),
-      body: {'orderStatus': status},
+      body: {'status': status}, // Changed from 'orderStatus' to 'status'
     );
     if (!response.success) throw Exception(response.error);
+  }
+
+  /// Check if orders are currently allowed based on business rules
+  /// Returns timing information including Friday warning
+  Future<Map<String, dynamic>> checkOrderTiming() async {
+    final response = await _api.get(ApiConfig.checkOrderTiming);
+    if (!response.success) throw Exception(response.error);
+    return response.data as Map<String, dynamic>;
   }
 }

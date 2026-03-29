@@ -5,6 +5,7 @@ enum OrderStatus {
   CANCELLED,
   ISSUED,
   SCHEDULED,
+  READY,
   CANCELLED_BY_VENDOR,
 }
 
@@ -15,7 +16,11 @@ class Order {
   final String? orderUnit;
   final double orderPrice;
   final DateTime? orderPlacedDate;
-  final DateTime? orderDeliveredDate;
+  final DateTime? scheduledDate;
+  final DateTime? readyDate;
+  final DateTime? deliveredDate;
+  final DateTime? orderDeliveredDate; // Deprecated: kept for backward compatibility
+  final DateTime? statusUpdatedAt; // For polling-based notifications
   final int? customerId;
   final OrderStatus status;
   final int? productId;
@@ -32,7 +37,11 @@ class Order {
     this.orderUnit,
     required this.orderPrice,
     this.orderPlacedDate,
+    this.scheduledDate,
+    this.readyDate,
+    this.deliveredDate,
     this.orderDeliveredDate,
+    this.statusUpdatedAt,
     this.customerId,
     this.status = OrderStatus.PENDING,
     this.productId,
@@ -53,8 +62,20 @@ class Order {
       orderPlacedDate: json['orderPlacedDate'] != null
           ? DateTime.tryParse(json['orderPlacedDate'].toString())
           : null,
+      scheduledDate: json['scheduledDate'] != null
+          ? DateTime.tryParse(json['scheduledDate'].toString())
+          : null,
+      readyDate: json['readyDate'] != null
+          ? DateTime.tryParse(json['readyDate'].toString())
+          : null,
+      deliveredDate: json['deliveredDate'] != null
+          ? DateTime.tryParse(json['deliveredDate'].toString())
+          : null,
       orderDeliveredDate: json['orderDeliveredDate'] != null
           ? DateTime.tryParse(json['orderDeliveredDate'].toString())
+          : null,
+      statusUpdatedAt: json['statusUpdatedAt'] != null
+          ? DateTime.tryParse(json['statusUpdatedAt'].toString())
           : null,
       customerId: json['customerId'],
       status: _parseStatus(json['orderStatus'] ?? 'PENDING'),
@@ -85,7 +106,8 @@ class Order {
       status == OrderStatus.PENDING ||
       status == OrderStatus.PROCESSING ||
       status == OrderStatus.ISSUED ||
-      status == OrderStatus.SCHEDULED;
+      status == OrderStatus.SCHEDULED ||
+      status == OrderStatus.READY;
 
   String get statusDisplay {
     switch (status) {
@@ -108,6 +130,8 @@ class Order {
         return OrderStatus.ISSUED;
       case 'SCHEDULED':
         return OrderStatus.SCHEDULED;
+      case 'READY':
+        return OrderStatus.READY;
       case 'CANCELLED_BY_VENDOR':
         return OrderStatus.CANCELLED_BY_VENDOR;
       default:

@@ -17,7 +17,11 @@ public class OrderMapper {
                 order.getOrderUnit(),
                 order.getOrderPrice(),
                 order.getOrderPlacedDate(),
+                order.getScheduledDate(),
+                order.getReadyDate(),
+                order.getDeliveredDate(),
                 order.getOrderDeliveredDate(),
+                order.getStatusUpdatedAt(),
                 order.getCustomerId(),
                 order.getOrderStatus(),
                 order.getProductId(),
@@ -42,7 +46,11 @@ public class OrderMapper {
         order.setOrderUnit(orderDTO.getOrderUnit());
         order.setOrderPrice(orderDTO.getOrderPrice());
         order.setOrderPlacedDate(orderDTO.getOrderPlacedDate());
+        order.setScheduledDate(orderDTO.getScheduledDate());
+        order.setReadyDate(orderDTO.getReadyDate());
+        order.setDeliveredDate(orderDTO.getDeliveredDate());
         order.setOrderDeliveredDate(orderDTO.getOrderDeliveredDate());
+        order.setStatusUpdatedAt(orderDTO.getStatusUpdatedAt());
         order.setCustomerId(orderDTO.getCustomerId());
         order.setOrderStatus(orderDTO.getOrderStatus());
         order.setProductId(orderDTO.getProductId());

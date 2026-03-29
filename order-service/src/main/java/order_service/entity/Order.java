@@ -19,6 +19,7 @@ public class Order {
     @PrePersist
     protected void onCreate() {
         orderPlacedDate = LocalDateTime.now();
+        statusUpdatedAt = LocalDateTime.now();
         if (orderStatus == null) {
             orderStatus = "ISSUED";
         }
@@ -26,9 +27,7 @@ public class Order {
 
     @PreUpdate
     protected void onUpdate() {
-        if ("SCHEDULED".equals(orderStatus) && orderDeliveredDate == null) {
-            orderDeliveredDate = LocalDateTime.now();
-        }
+        statusUpdatedAt = LocalDateTime.now();
     }
 
     @Id
@@ -48,11 +47,24 @@ public class Order {
     @Schema(description = "Total price of the order", example = "14.95", required = true)
     private double orderPrice;
     
-    @Schema(description = "Timestamp when the order was placed", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp when the order was placed (ISSUED status)", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime orderPlacedDate;
-    
-    @Schema(description = "Timestamp when the order was delivered", accessMode = Schema.AccessMode.READ_ONLY)
+
+    @Schema(description = "Timestamp when the order was scheduled by vendor (ISSUED → SCHEDULED)", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime scheduledDate;
+
+    @Schema(description = "Timestamp when the order was marked ready for pickup (SCHEDULED → READY)", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime readyDate;
+
+    @Schema(description = "Timestamp when the order was delivered to customer (READY → DELIVERED)", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime deliveredDate;
+
+    @Deprecated
+    @Schema(description = "Deprecated: Use deliveredDate instead", accessMode = Schema.AccessMode.READ_ONLY)
     private LocalDateTime orderDeliveredDate;
+
+    @Schema(description = "Timestamp when the order status was last updated (for polling notifications)", accessMode = Schema.AccessMode.READ_ONLY)
+    private LocalDateTime statusUpdatedAt;
     
     @Schema(description = "ID of the customer who placed this order", example = "123", required = true)
     private Long customerId;

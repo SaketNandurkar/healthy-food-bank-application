@@ -29,12 +29,25 @@ public class OrderDTO {
     @Schema(description = "Total price of the order", example = "14.95")
     private double orderPrice;
 
-    @Schema(description = "Timestamp when the order was placed")
+    @Schema(description = "Timestamp when the order was placed (ISSUED status)")
     private LocalDateTime orderPlacedDate;
-    
-    @Schema(description = "Timestamp when the order was delivered")
+
+    @Schema(description = "Timestamp when the order was scheduled by vendor (ISSUED → SCHEDULED)")
+    private LocalDateTime scheduledDate;
+
+    @Schema(description = "Timestamp when the order was marked ready for pickup (SCHEDULED → READY)")
+    private LocalDateTime readyDate;
+
+    @Schema(description = "Timestamp when the order was delivered to customer (READY → DELIVERED)")
+    private LocalDateTime deliveredDate;
+
+    @Deprecated
+    @Schema(description = "Deprecated: Use deliveredDate instead")
     private LocalDateTime orderDeliveredDate;
-    
+
+    @Schema(description = "Timestamp when the order status was last updated (for polling notifications)")
+    private LocalDateTime statusUpdatedAt;
+
     @Schema(description = "ID of the customer who placed this order", example = "123")
     private Long customerId;
     

@@ -24,6 +24,10 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public String extractVendorId(String token) {
+        return extractClaim(token, claims -> claims.get("vendorId", String.class));
+    }
+
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
@@ -67,6 +71,19 @@ public class JwtService {
         // Remove ROLE_ prefix for JWT storage - frontend expects clean role names
         String role = authority.startsWith("ROLE_") ? authority.substring(5) : authority;
         claims.put("role", role);
+        return createToken(claims, userName);
+    }
+
+    // Overloaded method to include vendorId in claims
+    public String generateToken(String userName, Authentication authentication, String vendorId){
+        Map<String, Object> claims = new HashMap<>();
+        String authority = authentication.getAuthorities().iterator().next().getAuthority();
+        // Remove ROLE_ prefix for JWT storage - frontend expects clean role names
+        String role = authority.startsWith("ROLE_") ? authority.substring(5) : authority;
+        claims.put("role", role);
+        if (vendorId != null && !vendorId.isEmpty()) {
+            claims.put("vendorId", vendorId);
+        }
         return createToken(claims, userName);
     }
 

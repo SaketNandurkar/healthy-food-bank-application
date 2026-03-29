@@ -58,6 +58,7 @@ class ApiConfig {
 
   // Order Service Endpoints
   static const String orders = '$orderServiceUrl/order';
+  static const String checkOrderTiming = '$orderServiceUrl/order/check-timing';
   static String orderById(int id) => '$orderServiceUrl/order/$id';
   static String customerOrders(int customerId) => '$orderServiceUrl/order/customer/$customerId';
   static String vendorOrders(String vendorId) => '$orderServiceUrl/order/vendor/$vendorId';
@@ -65,8 +66,12 @@ class ApiConfig {
       '$orderServiceUrl/order/vendor/$vendorId/issued';
   static String vendorScheduledOrders(String vendorId) =>
       '$orderServiceUrl/order/vendor/$vendorId/scheduled';
+  static String vendorReadyOrders(String vendorId) =>
+      '$orderServiceUrl/order/vendor/$vendorId/ready';
   static String vendorCancelledOrders(String vendorId) =>
       '$orderServiceUrl/order/vendor/$vendorId/cancelled';
+  static String vendorOrderSummary(String vendorId) =>
+      '$orderServiceUrl/order/vendor/$vendorId/summary';
   static String acceptOrder(int id) => '$orderServiceUrl/order/$id/accept';
   static String rejectOrder(int id) => '$orderServiceUrl/order/$id/reject';
   static String updateOrderStatus(int id) => '$orderServiceUrl/order/$id/status';
@@ -76,4 +81,10 @@ class ApiConfig {
   static const String vendorCodes = '$userServiceUrl/user/admin/vendor-codes';
   static const String unusedVendorCodes = '$userServiceUrl/user/admin/vendor-codes/unused';
   static const String usedVendorCodes = '$userServiceUrl/user/admin/vendor-codes/used';
+
+  // Admin - Analytics
+  static const String analyticsOverview = '$orderServiceUrl/admin/analytics/overview';
+  static const String analyticsOrdersByPickupPoint = '$orderServiceUrl/admin/analytics/orders-by-pickup-point';
+  static const String analyticsTopProducts = '$orderServiceUrl/admin/analytics/top-products';
+  static const String analyticsTopVendors = '$orderServiceUrl/admin/analytics/top-vendors';
 }

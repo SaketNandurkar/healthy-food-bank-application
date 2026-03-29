@@ -5,6 +5,7 @@ import '../../utils/premium_decorations.dart';
 import '../../utils/premium_animations.dart';
 import '../../providers/admin_dashboard_provider.dart';
 import '../../providers/admin_navigation_provider.dart';
+import 'admin_analytics_screen.dart';
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -350,8 +351,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
         ),
         _buildActionButton(
           icon: Icons.analytics_rounded,
-          label: 'Reports',
-          onTap: _showReportsComingSoon,
+          label: 'Analytics',
+          onTap: _navigateToAnalytics,
         ),
         _buildActionButton(
           icon: Icons.settings_rounded,
@@ -423,12 +424,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen>
     ref.read(adminNavigationProvider.notifier).state = 4;
   }
 
-  void _showReportsComingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Reports feature coming soon!'),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: AppColors.info,
+  void _navigateToAnalytics() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const AdminAnalyticsScreen(),
       ),
     );
   }

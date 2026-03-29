@@ -212,18 +212,18 @@ public class UserController {
             
             if(authentication.isAuthenticated()){
                 Customer user = userService.getUserByUsername(authenticationRequest.getUsername());
-                String token = jwtService.generateToken(user.getUserName(), authentication);
-                
-                System.out.println("User found - Role: " + user.getRoles());
+                String token = jwtService.generateToken(user.getUserName(), authentication, user.getVendorId());
+
+                System.out.println("User found - Role: " + user.getRoles() + ", VendorId: " + user.getVendorId());
                 System.out.println("JWT Token generated: " + token.substring(0, 20) + "...");
-                
+
                 // Clear password before sending to client
                 user.setPassword(null);
-                
+
                 LoginResponse response = new LoginResponse(token, user, 3600L);
                 System.out.println("Response created - User role in response: " + response.getUser().getRoles());
                 System.out.println("=== AUTHENTICATION DEBUG END ===");
-                
+
                 return ResponseEntity.ok(response);
             } else {
                 throw new AuthenticationCredentialsNotFoundException("Not Authenticated");

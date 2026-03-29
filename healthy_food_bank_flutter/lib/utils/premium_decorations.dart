@@ -209,6 +209,7 @@ class PremiumHeader extends StatelessWidget {
   final Widget? child;
   final String? title;
   final String? subtitle;
+  final Widget? leading;
   final List<Widget>? actions;
   final Gradient? gradient;
   final EdgeInsetsGeometry? padding;
@@ -219,6 +220,7 @@ class PremiumHeader extends StatelessWidget {
     this.child,
     this.title,
     this.subtitle,
+    this.leading,
     this.actions,
     this.gradient,
     this.padding,
@@ -262,6 +264,10 @@ class PremiumHeader extends StatelessWidget {
         children: [
           Row(
             children: [
+              if (leading != null) ...[
+                leading!,
+                const SizedBox(width: 12),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

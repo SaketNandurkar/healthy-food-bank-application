@@ -6,12 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import order_service.dto.OrderDTO;
+import order_service.dto.ProductDemandSummary;
+import order_service.dto.VendorOrderSummaryResponse;
 import order_service.entity.Order;
 import order_service.exception.OrderNotFoundException;
+import order_service.exception.OrderCutoffException;
 import order_service.mapper.OrderMapper;
 import order_service.repository.OrderRepository;
+import order_service.util.OrderTimeValidator;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +39,9 @@ public class OrderService {
     @Autowired
     private org.springframework.web.client.RestTemplate restTemplate;
 
+    @Autowired
+    private OrderTimeValidator orderTimeValidator;
+
     public OrderService(OrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
@@ -40,6 +49,20 @@ public class OrderService {
     public Order createOrder(Order order, Long customerId) {
         try {
             logger.info("Creating order for customer: {} with vendorId: {}", customerId, order.getVendorId());
+
+            // ========== ORDER CUTOFF VALIDATION ==========
+            // Validate if order placement is allowed based on business rules
+            // Orders are only accepted Monday-Friday before 8:00 PM IST
+            if (!orderTimeValidator.isOrderAllowed()) {
+                logger.warn("Order creation blocked - outside allowed time window. Current time (IST): {}",
+                        orderTimeValidator.getCurrentTimeIST());
+                throw new OrderCutoffException(
+                        "Order window closed. Please order before Friday 8 PM IST for weekend delivery."
+                );
+            }
+            logger.info("Order time validation passed. Current time (IST): {}",
+                    orderTimeValidator.getCurrentTimeIST());
+            // ============================================
 
             order.setCustomerId(customerId);
 
@@ -161,6 +184,7 @@ public class OrderService {
         }
     }
 
+    // Legacy method - kept for backward compatibility
     public Order updateOrderStatus(Integer orderId, String status) {
         try {
             logger.info("Updating order status for order ID: {} to {}", orderId, status);
@@ -187,6 +211,108 @@ public class OrderService {
             logger.error("Error updating order status for ID: {}", orderId, e);
             throw new RuntimeException("Failed to update order status", e);
         }
+    }
+
+    /**
+     * ========== VENDOR ORDER LIFECYCLE MANAGEMENT ==========
+     * Update order status with validation (vendor ownership + valid transitions)
+     *
+     * Valid transitions:
+     * - ISSUED → SCHEDULED (via acceptOrder)
+     * - SCHEDULED → READY
+     * - READY → DELIVERED
+     *
+     * @param orderId Order ID to update
+     * @param vendorId Vendor ID making the update (for ownership check)
+     * @param newStatus New status to set
+     * @return Updated order
+     * @throws IllegalArgumentException if transition is invalid or vendor doesn't own order
+     */
+    public Order updateOrderStatusWithValidation(Integer orderId, String vendorId, String newStatus) {
+        try {
+            logger.info("Vendor {} updating order {} status to {}", vendorId, orderId, newStatus);
+
+            // Fetch order
+            Order order = orderRepository.findById(orderId)
+                    .orElseThrow(() -> new OrderNotFoundException("Order not found with id: " + orderId));
+
+            // ===== VALIDATION 1: Vendor Ownership =====
+            if (!vendorId.equals(order.getVendorId())) {
+                logger.warn("Vendor {} attempted to update order {} owned by vendor {}",
+                        vendorId, orderId, order.getVendorId());
+                throw new IllegalArgumentException(
+                        "Access denied: Vendor can only update their own orders");
+            }
+
+            String currentStatus = order.getOrderStatus();
+
+            // ===== VALIDATION 2: Valid Status Transition =====
+            if (!isValidStatusTransition(currentStatus, newStatus)) {
+                logger.warn("Invalid status transition attempted: {} → {} for order {}",
+                        currentStatus, newStatus, orderId);
+                throw new IllegalArgumentException(
+                        String.format("Invalid status transition: %s → %s. " +
+                                "Valid transitions: ISSUED→SCHEDULED, SCHEDULED→READY, READY→DELIVERED",
+                                currentStatus, newStatus));
+            }
+
+            // Update status and set timestamp based on transition
+            order.setOrderStatus(newStatus);
+            LocalDateTime now = LocalDateTime.now();
+            order.setStatusUpdatedAt(now); // Track status update time for polling notifications
+
+            // Set appropriate timestamp for each status transition
+            switch (newStatus) {
+                case "SCHEDULED":
+                    order.setScheduledDate(now);
+                    logger.info("Set scheduledDate for order {}", orderId);
+                    break;
+                case "READY":
+                    order.setReadyDate(now);
+                    logger.info("Set readyDate for order {}", orderId);
+                    break;
+                case "DELIVERED":
+                    order.setDeliveredDate(now);
+                    order.setOrderDeliveredDate(now); // Keep for backward compatibility
+                    logger.info("Set deliveredDate for order {}", orderId);
+                    break;
+            }
+
+            Order savedOrder = orderRepository.save(order);
+
+            logger.info("Successfully updated order {} status: {} → {}",
+                    orderId, currentStatus, newStatus);
+
+            // Send notification
+            if (savedOrder.getVendorId() != null && !savedOrder.getVendorId().isEmpty()) {
+                orderNotificationService.notifyVendorAboutOrderUpdate(savedOrder, currentStatus);
+            }
+
+            return savedOrder;
+
+        } catch (OrderNotFoundException | IllegalArgumentException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error updating order status for ID: {}", orderId, e);
+            throw new RuntimeException("Failed to update order status: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Validate if status transition is allowed
+     *
+     * @param currentStatus Current order status
+     * @param newStatus Target status
+     * @return true if transition is valid
+     */
+    private boolean isValidStatusTransition(String currentStatus, String newStatus) {
+        // Define allowed transitions
+        return switch (currentStatus) {
+            case "ISSUED" -> "SCHEDULED".equals(newStatus);
+            case "SCHEDULED" -> "READY".equals(newStatus);
+            case "READY" -> "DELIVERED".equals(newStatus);
+            default -> false;
+        };
     }
 
     public Order updateOrderVendor(Integer orderId, String vendorId) {
@@ -285,6 +411,84 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * ========== VENDOR ORDER AGGREGATION ==========
+     * Get aggregated product demand summary for vendor inventory planning
+     *
+     * APPROACH 1: SQL GROUP BY (OPTIMAL - Database-level aggregation)
+     * Performance: O(n) with single query, minimal memory footprint
+     *
+     * @param vendorId The vendor ID
+     * @return VendorOrderSummaryResponse with aggregated product demand
+     */
+    public VendorOrderSummaryResponse getVendorOrderSummary(String vendorId) {
+        logger.info("Fetching order summary for vendor ID: {}", vendorId);
+
+        // Get aggregated data using SQL GROUP BY (OPTIMAL approach)
+        List<ProductDemandSummary> productDemands = orderRepository.getProductDemandSummary(vendorId);
+
+        // Calculate totals
+        int totalProducts = productDemands.size();
+        int totalOrders = productDemands.stream()
+                .mapToInt(p -> p.getTotalQuantity() != null ? p.getTotalQuantity() : 0)
+                .sum();
+
+        logger.info("Order summary for vendor {}: {} products, {} total units",
+                vendorId, totalProducts, totalOrders);
+
+        return new VendorOrderSummaryResponse(productDemands, totalOrders, totalProducts);
+    }
+
+    /**
+     * APPROACH 2: Java Streams (Alternative implementation)
+     * Performance: O(n) but loads all orders into memory first
+     * Use when you need additional filtering logic not easily expressed in SQL
+     *
+     * @param vendorId The vendor ID
+     * @return VendorOrderSummaryResponse with aggregated product demand
+     */
+    public VendorOrderSummaryResponse getVendorOrderSummaryWithStreams(String vendorId) {
+        logger.info("Fetching order summary (Streams approach) for vendor ID: {}", vendorId);
+
+        // Fetch all ISSUED and SCHEDULED orders for vendor
+        List<Order> orders = orderRepository.findByVendorId(vendorId).stream()
+                .filter(order -> "ISSUED".equals(order.getOrderStatus()) ||
+                               "SCHEDULED".equals(order.getOrderStatus()))
+                .collect(Collectors.toList());
+
+        // Group by product name and sum quantities using Java Streams
+        Map<String, Double> productQuantityMap = orders.stream()
+                .collect(Collectors.groupingBy(
+                        Order::getOrderName,
+                        Collectors.summingDouble(Order::getOrderQuantity)
+                ));
+
+        // Convert to ProductDemandSummary list
+        List<ProductDemandSummary> productDemands = productQuantityMap.entrySet().stream()
+                .map(entry -> {
+                    // Get unit from first order with this product name
+                    String unit = orders.stream()
+                            .filter(o -> o.getOrderName().equals(entry.getKey()))
+                            .findFirst()
+                            .map(Order::getOrderUnit)
+                            .orElse("unit");
+                    return new ProductDemandSummary(entry.getKey(), entry.getValue().intValue(), unit);
+                })
+                .sorted((a, b) -> b.getTotalQuantity().compareTo(a.getTotalQuantity())) // Sort by quantity desc
+                .collect(Collectors.toList());
+
+        // Calculate totals
+        int totalProducts = productDemands.size();
+        int totalOrders = productDemands.stream()
+                .mapToInt(p -> p.getTotalQuantity() != null ? p.getTotalQuantity() : 0)
+                .sum();
+
+        logger.info("Order summary (Streams) for vendor {}: {} products, {} total units",
+                vendorId, totalProducts, totalOrders);
+
+        return new VendorOrderSummaryResponse(productDemands, totalOrders, totalProducts);
+    }
+
     public Order acceptOrder(Integer orderId) {
         try {
             logger.info("Accepting order with ID: {}", orderId);
@@ -297,7 +501,10 @@ public class OrderService {
             }
 
             String oldStatus = order.getOrderStatus();
+            LocalDateTime now = LocalDateTime.now();
             order.setOrderStatus("SCHEDULED");
+            order.setScheduledDate(now); // Set timestamp when order is scheduled
+            order.setStatusUpdatedAt(now); // Track status update time for polling notifications
             Order savedOrder = orderRepository.save(order);
 
             logger.info("Successfully accepted order ID: {}, status changed from {} to SCHEDULED",
@@ -331,6 +538,7 @@ public class OrderService {
 
             String oldStatus = order.getOrderStatus();
             order.setOrderStatus("CANCELLED_BY_VENDOR");
+            order.setStatusUpdatedAt(LocalDateTime.now()); // Track status update time for polling notifications
             Order savedOrder = orderRepository.save(order);
 
             logger.info("Successfully rejected order ID: {}, status changed from {} to CANCELLED_BY_VENDOR",
@@ -379,6 +587,16 @@ public class OrderService {
     public List<OrderDTO> getScheduledOrdersByVendorId(String vendorId) {
         logger.info("Fetching scheduled orders for vendor ID: {}", vendorId);
         return orderRepository.findByVendorIdAndOrderStatus(vendorId, "SCHEDULED").stream()
+                .map(OrderMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get all READY orders for a vendor (orders ready for pickup)
+     */
+    public List<OrderDTO> getReadyOrdersByVendorId(String vendorId) {
+        logger.info("Fetching ready orders for vendor ID: {}", vendorId);
+        return orderRepository.findByVendorIdAndOrderStatus(vendorId, "READY").stream()
                 .map(OrderMapper::toDTO)
                 .collect(Collectors.toList());
     }
@@ -444,5 +662,21 @@ public class OrderService {
 
         logger.info("Successfully populated customer details for {} orders", count);
         return count;
+    }
+
+    /**
+     * ========== SMART POLLING NOTIFICATIONS ==========
+     * Get orders that were created or updated since a given timestamp
+     * Used for polling-based real-time notifications
+     *
+     * @param vendorId The vendor ID
+     * @param since Timestamp to check for new/updated orders
+     * @return List of OrderDTOs for orders created or updated after the given timestamp
+     */
+    public List<OrderDTO> getOrdersUpdatedSince(String vendorId, LocalDateTime since) {
+        logger.info("Fetching orders updated since {} for vendor {}", since, vendorId);
+        return orderRepository.findOrdersUpdatedSince(vendorId, since).stream()
+                .map(OrderMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }

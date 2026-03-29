@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,9 +10,12 @@ import '../../providers/auth_provider.dart';
 import '../../providers/product_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/pickup_point_provider.dart';
+import '../../services/order_service.dart';
 import '../../widgets/status_badge.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/qty_stepper.dart';
+import '../../widgets/order_countdown_banner.dart';
+import '../../widgets/test_countdown_banner.dart';
 import 'customer_shell.dart';
 import '../../utils/premium_animations.dart';
 import '../../utils/premium_decorations.dart';
@@ -45,6 +49,14 @@ class _BrowseProductsScreenState extends ConsumerState<BrowseProductsScreen>
   // Auto-refresh interval (60 seconds for production)
   static const _autoRefreshInterval = Duration(seconds: 60);
 
+  // Order timing state
+  final OrderService _orderService = OrderService();
+  bool _orderAllowed = true;
+  bool _isFriday = false;
+  String? _warningMessage;
+  String? _currentTimeIST;
+  Timer? _timingRefreshTimer;
+
   @override
   void initState() {
     super.initState();
@@ -55,8 +67,41 @@ class _BrowseProductsScreenState extends ConsumerState<BrowseProductsScreen>
     WidgetsBinding.instance.addObserver(this); // Listen for app lifecycle changes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
+      _checkOrderTiming();
       _startAutoRefresh(); // Start periodic refresh
+      _startTimingRefresh();
     });
+  }
+
+  Future<void> _checkOrderTiming() async {
+    try {
+      final timing = await _orderService.checkOrderTiming();
+      if (mounted) {
+        setState(() {
+          _orderAllowed = timing['orderAllowed'] ?? true;
+          _isFriday = timing['isFriday'] ?? false;
+          _warningMessage = timing['warningMessage'];
+          _currentTimeIST = timing['currentTimeIST'];
+        });
+      }
+    } catch (e) {
+      print('Error checking order timing: $e');
+    }
+  }
+
+  void _startTimingRefresh() {
+    _timingRefreshTimer?.cancel();
+    // Refresh timing every 60 seconds
+    _timingRefreshTimer = Timer.periodic(
+      const Duration(seconds: 60),
+      (_) {
+        if (mounted) _checkOrderTiming();
+      },
+    );
+  }
+
+  void _stopTimingRefresh() {
+    _timingRefreshTimer?.cancel();
   }
 
   @override
@@ -65,6 +110,10 @@ class _BrowseProductsScreenState extends ConsumerState<BrowseProductsScreen>
     if (state == AppLifecycleState.resumed) {
       print('DEBUG: App resumed - refreshing data');
       _loadData();
+      _checkOrderTiming();
+      _startTimingRefresh();
+    } else if (state == AppLifecycleState.paused) {
+      _stopTimingRefresh();
     }
   }
 
@@ -143,6 +192,7 @@ class _BrowseProductsScreenState extends ConsumerState<BrowseProductsScreen>
 
   @override
   void dispose() {
+    _stopTimingRefresh();
     WidgetsBinding.instance.removeObserver(this); // Remove lifecycle observer
     _searchCtrl.dispose();
     _gridAnimCtrl.dispose();
@@ -180,6 +230,12 @@ class _BrowseProductsScreenState extends ConsumerState<BrowseProductsScreen>
 
             // ── Search bar ──
             _buildSearchBar(),
+
+            // ── Order Countdown (Friday only) ──
+            const OrderCountdownBanner(),
+
+            // ── Order Timing Banner (Weekend block) ──
+            _buildOrderTimingBanner(),
 
             // ── Category chips ──
             _buildCategoryChips(),
@@ -408,6 +464,70 @@ class _BrowseProductsScreenState extends ConsumerState<BrowseProductsScreen>
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
+      ),
+    );
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // ORDER TIMING BANNER — Shows "Order Window Closed" on weekends
+  // (Friday countdown is handled by OrderCountdownBanner widget)
+  // ────────────────────────────────────────────────────────────
+  Widget _buildOrderTimingBanner() {
+    // Only show when orders are blocked (weekends/Friday after 8 PM)
+    // The countdown banner handles Friday before 8 PM
+    if (_orderAllowed) {
+      return const SizedBox.shrink();
+    }
+
+    // BLOCKED STATE (Weekend or Friday after 8 PM)
+    final bgColor = Colors.red.shade50;
+    final borderColor = Colors.red.shade300;
+    final iconColor = Colors.red.shade700;
+    final textColor = Colors.red.shade900;
+    const icon = Icons.block_rounded;
+    const mainText = '🚫 Order Window Closed';
+    const subText = 'Orders will resume on Monday at 12:00 AM IST';
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor, width: 2),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: iconColor, size: 28),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  mainText,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                if (subText != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    subText,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: textColor.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
